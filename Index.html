@@ -23,6 +23,8 @@
       width: 100%;
       max-width: 400px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      position: relative;
+      z-index: 1;
     }
     h1 {
       text-align: center;
@@ -40,6 +42,8 @@
       box-sizing: border-box;
       font-size: 16px;
       font-family: Arial, sans-serif;
+      position: relative;
+      z-index: 2;
     }
     button {
       width: 100%;
@@ -52,9 +56,10 @@
       font-weight: bold;
       cursor: pointer;
       font-size: 16px;
+      position: relative;
+      z-index: 2;
     }
     button:hover { background: #c73e54; }
-    button:disabled { background: #555; cursor: not-allowed; }
     #messageDiv {
       padding: 10px;
       margin: 10px 0;
@@ -62,6 +67,8 @@
       text-align: center;
       display: none;
       font-weight: bold;
+      position: relative;
+      z-index: 3;
     }
     .success { background: #00b894; }
     .error { background: #d63031; }
@@ -183,35 +190,34 @@
     }
 
     async function loadProfile(user) {
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists()) {
-        currentUserData = userDoc.data();
-        
-        if (currentUserData.editCount === undefined) {
-          currentUserData.editCount = 0;
-        }
-        if (currentUserData.level === undefined) {
-          currentUserData.level = "Beginner";
-        }
-        
-        const profilePic = currentUserData.photoBase64 || 'https://via.placeholder.com/100/0f3460/ffffff?text=' + currentUserData.name.charAt(0);
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          currentUserData = userDoc.data();
+          
+          if (currentUserData.editCount === undefined) currentUserData.editCount = 0;
+          if (currentUserData.level === undefined) currentUserData.level = "Beginner";
+          
+          const profilePic = currentUserData.photoBase64 || 'https://via.placeholder.com/100/0f3460/ffffff?text=' + currentUserData.name.charAt(0);
 
-        profileInfo.innerHTML = `
-          <img src="${profilePic}" alt="Profile" class="profile-pic">
-          <strong>Name:</strong> ${currentUserData.name}<br>
-          <strong>Email:</strong> ${currentUserData.email}<br>
-          <strong>Bio:</strong> ${currentUserData.bio}<br>
-          <strong>Level:</strong> ${currentUserData.level}<br>
-          <strong>Edits:</strong> ${currentUserData.editCount}<br>
-          <strong>Joined:</strong> ${new Date(currentUserData.joinDate).toLocaleDateString()}
-        `;
+          profileInfo.innerHTML = `
+            <img src="${profilePic}" alt="Profile" class="profile-pic">
+            <strong>Name:</strong> ${currentUserData.name}<br>
+            <strong>Email:</strong> ${currentUserData.email}<br>
+            <strong>Bio:</strong> ${currentUserData.bio}<br>
+            <strong>Level:</strong> ${currentUserData.level}<br>
+            <strong>Edits:</strong> ${currentUserData.editCount}<br>
+            <strong>Joined:</strong> ${new Date(currentUserData.joinDate).toLocaleDateString()}
+          `;
+        }
+      } catch (error) {
+        console.log(error);
+        showMessage('Error loading profile', 'error');
       }
     }
 
     signUpBtn.addEventListener('click', async (e) => {
       e.preventDefault();
-      signUpBtn.disabled = true;
-
       const email = emailInput.value.trim();
       const password = passwordInput.value;
       const name = nameInput.value.trim();
@@ -219,13 +225,11 @@
 
       if (!email || !password) {
         showMessage('Please fill email and password', 'error');
-        signUpBtn.disabled = false;
         return;
       }
 
       if (password.length < 6) {
         showMessage('Password must be 6+ characters', 'error');
-        signUpBtn.disabled = false;
         return;
       }
 
@@ -250,21 +254,16 @@
         bioInput.value = '';
       } catch (error) {
         showMessage(error.message, 'error');
-      } finally {
-        signUpBtn.disabled = false;
       }
     });
 
     loginBtn.addEventListener('click', async (e) => {
       e.preventDefault();
-      loginBtn.disabled = true;
-
       const email = emailInput.value.trim();
       const password = passwordInput.value;
 
       if (!email || !password) {
         showMessage('Please fill email and password', 'error');
-        loginBtn.disabled = false;
         return;
       }
 
@@ -273,8 +272,6 @@
         showMessage('Logged in successfully!', 'success');
       } catch (error) {
         showMessage(error.message, 'error');
-      } finally {
-        loginBtn.disabled = false;
       }
     });
 
@@ -296,7 +293,6 @@
         return;
       }
 
-      uploadBtn.disabled = true;
       showMessage('Uploading...', 'success');
 
       try {
@@ -311,13 +307,11 @@
 
           showMessage('Profile picture updated!', 'success');
           await loadProfile(user);
-          uploadBtn.disabled = false;
           fileInput.value = '';
         };
         reader.readAsDataURL(file);
       } catch (error) {
         showMessage(error.message, 'error');
-        uploadBtn.disabled = false;
       }
     });
 
@@ -335,14 +329,11 @@
 
     saveBtn.addEventListener('click', async (e) => {
       e.preventDefault();
-      saveBtn.disabled = true;
-
       const newName = editNameInput.value.trim();
       const newBio = editBioInput.value.trim();
 
       if (!newName) {
         showMessage('Name cannot be empty', 'error');
-        saveBtn.disabled = false;
         return;
       }
 
@@ -379,8 +370,6 @@
         dashboard.style.display = 'block';
       } catch (error) {
         showMessage(error.message, 'error');
-      } finally {
-        saveBtn.disabled = false;
       }
     });
 
