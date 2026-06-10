@@ -307,322 +307,473 @@
     <div id="messageDiv"></div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, query, orderBy, getDocs, deleteDoc, where, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+ <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, query, orderBy, getDocs, deleteDoc, where, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCeHwDLfwsAwXh6Wf0fwCw-nwSLSmPj_qI",
-      authDomain: "rowena-portfolio.firebaseapp.com",
-      projectId: "rowena-portfolio",
-      storageBucket: "rowena-portfolio.firebasestorage.app",
-      messagingSenderId: "352213537262",
-      appId: "1:352213537262:web:b58a90d30c1f5fa78f7eff"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCeHwDLfwsAwXh6Wf0fwCw-nwSLSmPj_qI",
+    authDomain: "rowena-portfolio.firebaseapp.com",
+    projectId: "rowena-portfolio",
+    storageBucket: "rowena-portfolio.firebasestorage.app",
+    messagingSenderId: "352213537262",
+    appId: "1:352213537262:web:b58a90d30c1f5fa78f7eff"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    const emailInput = document.getElementById('emailInput');
-    const passwordInput = document.getElementById('passwordInput');
-    const nameInput = document.getElementById('nameInput');
-    const bioInput = document.getElementById('bioInput');
-    const signUpBtn = document.getElementById('signUpBtn');
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const editBtn = document.getElementById('editBtn');
-    const saveBtn = document.getElementById('saveBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const fileInput = document.getElementById('fileInput');
-    const postBtn = document.getElementById('postBtn');
-    const postInput = document.getElementById('postInput');
-    const feedBtn = document.getElementById('feedBtn');
-    const profileBtn = document.getElementById('profileBtn');
-    const messageDiv = document.getElementById('messageDiv');
-    const authForm = document.getElementById('authForm');
-    const dashboard = document.getElementById('dashboard');
-    const editForm = document.getElementById('editForm');
-    const profileInfo = document.getElementById('profileInfo');
-    const editNameInput = document.getElementById('editNameInput');
-    const editBioInput = document.getElementById('editBioInput');
-    const profileSection = document.getElementById('profileSection');
-    const globalFeed = document.getElementById('globalFeed');
-    const feedPosts = document.getElementById('feedPosts');
-    const myPosts = document.getElementById('myPosts');
+  const emailInput = document.getElementById('emailInput');
+  const passwordInput = document.getElementById('passwordInput');
+  const nameInput = document.getElementById('nameInput');
+  const bioInput = document.getElementById('bioInput');
+  const signUpBtn = document.getElementById('signUpBtn');
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const editBtn = document.getElementById('editBtn');
+  const saveBtn = document.getElementById('saveBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const fileInput = document.getElementById('fileInput');
+  const postBtn = document.getElementById('postBtn');
+  const postInput = document.getElementById('postInput');
+  const feedBtn = document.getElementById('feedBtn');
+  const profileBtn = document.getElementById('profileBtn');
+  const messageDiv = document.getElementById('messageDiv');
+  const authForm = document.getElementById('authForm');
+  const dashboard = document.getElementById('dashboard');
+  const editForm = document.getElementById('editForm');
+  const profileInfo = document.getElementById('profileInfo');
+  const editNameInput = document.getElementById('editNameInput');
+  const editBioInput = document.getElementById('editBioInput');
+  const profileSection = document.getElementById('profileSection');
+  const globalFeed = document.getElementById('globalFeed');
+  const feedPosts = document.getElementById('feedPosts');
+  const myPosts = document.getElementById('myPosts');
 
-    let currentUserData = null;
+  let currentUserData = null;
 
-    function showMessage(text, type) {
-      messageDiv.textContent = text;
-      messageDiv.className = type;
-      messageDiv.style.display = 'block';
-      setTimeout(() => {
-        messageDiv.style.display = 'none';
-      }, 4000);
-    }
+  function showMessage(text, type) {
+    messageDiv.textContent = text;
+    messageDiv.className = type;
+    messageDiv.style.display = 'block';
+    setTimeout(() => {
+      messageDiv.style.display = 'none';
+    }, 4000);
+  }
 
-    function timeAgo(date) {
-      const seconds = Math.floor((new Date() - date) / 1000);
-      if (seconds < 60) return 'Just now';
-      const minutes = Math.floor(seconds / 60);
-      if (minutes < 60) return `${minutes}m ago`;
-      const hours = Math.floor(minutes / 60);
-      if (hours < 24) return `${hours}h ago`;
-      const days = Math.floor(hours / 24);
-      return `${days}d ago`;
-    }
+  function timeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    if (seconds < 60) return 'Just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  }
 
-    async function loadProfile(user) {
-      try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          currentUserData = userDoc.data();
-
-          if (currentUserData.editCount === undefined) currentUserData.editCount = 0;
-          if (currentUserData.level === undefined) currentUserData.level = "Beginner";
-
-          let levelEmoji = "🌱";
-          if (currentUserData.level === "Intermediate") levelEmoji = "🔥";
-          if (currentUserData.level === "Expert") levelEmoji = "⚡";
-          if (currentUserData.level === "Master") levelEmoji = "🥷";
-          if (currentUserData.level === "Legend") levelEmoji = "👑";
-
-          const profilePic = currentUserData.photoBase64 || 'https://via.placeholder.com/100/0f3460/ffffff?text=' + currentUserData.name.charAt(0);
-
-          profileInfo.innerHTML = `
-            <img src="${profilePic}" alt="Profile" class="profile-pic">
-            <strong>Name:</strong> ${currentUserData.name}<br>
-            <strong>Email:</strong> ${currentUserData.email}<br>
-            <strong>Bio:</strong> ${currentUserData.bio}<br>
-            <strong>Level:</strong> ${levelEmoji} ${currentUserData.level}<br>
-            <strong>Edits:</strong> ${currentUserData.editCount}<br>
-            <strong>Joined:</strong> ${new Date(currentUserData.joinDate).toLocaleDateString()}
-          `;
-
-          await loadMyPosts(user.uid);
-        }
-      } catch (error) {
-        console.log(error);
-        showMessage('Error loading profile', 'error');
+  async function loadProfile(user) {
+    try {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        currentUserData = userDoc.data();
+        if (currentUserData.editCount === undefined) currentUserData.editCount = 0;
+        if (currentUserData.level === undefined) currentUserData.level = "Beginner";
+        let levelEmoji = "🌱";
+        if (currentUserData.level === "Intermediate") levelEmoji = "🔥";
+        if (currentUserData.level === "Expert") levelEmoji = "⚡";
+        if (currentUserData.level === "Master") levelEmoji = "🥷";
+        if (currentUserData.level === "Legend") levelEmoji = "👑";
+        const profilePic = currentUserData.photoBase64 || 'https://via.placeholder.com/100/0f3460/ffffff?text=' + currentUserData.name.charAt(0);
+        profileInfo.innerHTML = `
+          <img src="${profilePic}" alt="Profile" class="profile-pic">
+          <strong>Name:</strong> ${currentUserData.name}<br>
+          <strong>Email:</strong> ${currentUserData.email}<br>
+          <strong>Bio:</strong> ${currentUserData.bio}<br>
+          <strong>Level:</strong> ${levelEmoji} ${currentUserData.level}<br>
+          <strong>Edits:</strong> ${currentUserData.editCount}<br>
+          <strong>Joined:</strong> ${new Date(currentUserData.joinDate).toLocaleDateString()}
+        `;
+        await loadMyPosts(user.uid);
       }
+    } catch (error) {
+      showMessage('Error loading profile', 'error');
     }
+  }
 
-    async function loadMyPosts(userId) {
-      try {
-        const q = query(
-          collection(db, "posts"),
-          where("userId", "==", userId),
-          orderBy("createdAt", "desc")
-        );
-        const querySnapshot = await getDocs(q);
-
-        myPosts.innerHTML = '';
-        if (querySnapshot.empty) {
-          myPosts.innerHTML = '<p style="text-align:center;color:#999;">No posts yet. Create one!</p>';
-          return;
-        }
-
-        for (const docSnap of querySnapshot.docs) {
-          const post = docSnap.data();
-          const postElement = await createPostElement(docSnap.id, post, true);
-          myPosts.appendChild(postElement);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    }
-
-    async function loadGlobalFeed() {
-      try {
-        const q = query(
-          collection(db, "posts"),
-          orderBy("createdAt", "desc")
-        );
-        const querySnapshot = await getDocs(q);
-
-        feedPosts.innerHTML = '';
-        if (querySnapshot.empty) {
-          feedPosts.innerHTML = '<p style="text-align:center;color:#999;">No posts yet. Be the first!</p>';
-          return;
-        }
-
-        for (const docSnap of querySnapshot.docs) {
-          const post = docSnap.data();
-          const isMyPost = auth.currentUser && post.userId === auth.currentUser.uid;
-          const postElement = await createPostElement(docSnap.id, post, isMyPost);
-          feedPosts.appendChild(postElement);
-        }
-      } catch (error) {
-        console.log(error);
-        showMessage('Error loading feed', 'error');
-      }
-    }
-
-    async function getComments(postId) {
+  async function loadMyPosts(userId) {
+    try {
       const q = query(
-        collection(db, "posts", postId, "comments"),
-        orderBy("createdAt", "asc")
+        collection(db, "posts"),
+        where("userId", "==", userId),
+        orderBy("createdAt", "desc")
       );
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
-    }
-
-    async function createPostElement(postId, post, canDelete) {
-      const div = document.createElement('div');
-      div.className = 'post';
-
-      const userPic = post.userPhoto || 'https://via.placeholder.com/40/0f3460/ffffff?text=' + post.userName.charAt(0);
-      const postDate = post.createdAt? new Date(post.createdAt) : new Date();
-      const currentUserId = auth.currentUser? auth.currentUser.uid : null;
-      const likes = post.likes || [];
-      const likedByUser = currentUserId && likes.includes(currentUserId);
-      const comments = await getComments(postId);
-
-      div.innerHTML = `
-        <div class="post-header">
-          <img src="${userPic}" alt="User" class="post-pic">
-          <div>
-            <div class="post-name">${post.userName}</div>
-            <div class="post-time">${timeAgo(postDate)}</div>
-          </div>
-        </div>
-        <div class="post-content">${post.content}</div>
-        <div class="post-actions">
-          <button class="action-btn like-btn ${likedByUser? 'liked' : ''}" data-id="${postId}">
-            ❤️ ${likes.length}
-          </button>
-          <button class="action-btn comment-toggle-btn" data-id="${postId}">
-            💬 ${comments.length}
-          </button>
-          ${canDelete? `<button class="delete-post-btn" data-id="${postId}">Delete</button>` : ''}
-        </div>
-        <div class="comments-section" id="comments-${postId}">
-          <div class="comments-list"></div>
-          <div class="comment-input-box">
-            <input type="text" class="comment-input" placeholder="Write a comment..." data-id="${postId}">
-            <button class="comment-btn" data-id="${postId}">Send</button>
-          </div>
-        </div>
-      `;
-
-      // Like button
-      div.querySelector('.like-btn').addEventListener('click', async () => {
-        if (!currentUserId) return;
-        const postRef = doc(db, "posts", postId);
-        if (likedByUser) {
-          await updateDoc(postRef, { likes: arrayRemove(currentUserId) });
-        } else {
-          await updateDoc(postRef, { likes: arrayUnion(currentUserId) });
-        }
-        await loadGlobalFeed();
-        await loadMyPosts(auth.currentUser.uid);
-      });
-
-      // Comment toggle
-      div.querySelector('.comment-toggle-btn').addEventListener('click', () => {
-        const commentsSection = div.querySelector(`#comments-${postId}`);
-        commentsSection.style.display = commentsSection.style.display === 'none'? 'block' : 'none';
-      });
-
-      // Load comments
-      const commentsList = div.querySelector('.comments-list');
-      comments.forEach(comment => {
-        const commentPic = comment.userPhoto || 'https://via.placeholder.com/25/0f3460/ffffff?text=' + comment.userName.charAt(0);
-        const commentDate = comment.createdAt? new Date(comment.createdAt) : new Date();
-        commentsList.innerHTML += `
-          <div class="comment">
-            <div class="comment-header">
-              <img src="${commentPic}" alt="User" class="comment-pic">
-              <span class="comment-name">${comment.userName}</span>
-              <span class="comment-time">${timeAgo(commentDate)}</span>
-            </div>
-            <div class="comment-text">${comment.content}</div>
-          </div>
-        `;
-      });
-
-      // Add comment
-      div.querySelector('.comment-btn').addEventListener('click', async () => {
-        const input = div.querySelector('.comment-input');
-        const content = input.value.trim();
-        if (!content) return;
-
-        await addDoc(collection(db, "posts", postId, "comments"), {
-          userId: currentUserId,
-          userName: currentUserData.name,
-          userPhoto: currentUserData.photoBase64,
-          content: content,
-          createdAt: new Date().toISOString()
-        });
-
-        input.value = '';
-        await loadGlobalFeed();
-        await loadMyPosts(auth.currentUser.uid);
-      });
-
-      // Delete post
-      if (canDelete) {
-        div.querySelector('.delete-post-btn').addEventListener('click', async () => {
-          if (confirm('Delete this post?')) {
-            await deleteDoc(doc(db, "posts", postId));
-            showMessage('Post deleted', 'success');
-            await loadMyPosts(auth.currentUser.uid);
-            await loadGlobalFeed();
-          }
-        });
-      }
-
-      return div;
-    }
-
-    signUpBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-      const name = nameInput.value.trim();
-      const bio = bioInput.value.trim();
-
-      if (!email ||!password) {
-        showMessage('Please fill email and password', 'error');
+      myPosts.innerHTML = '';
+      if (querySnapshot.empty) {
+        myPosts.innerHTML = '<p style="text-align:center;color:#999;">No posts yet. Create one!</p>';
         return;
       }
+      for (const docSnap of querySnapshot.docs) {
+        const post = docSnap.data();
+        const postElement = await createPostElement(docSnap.id, post, true);
+        myPosts.appendChild(postElement);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
-      if (password.length < 6) {
-        showMessage('Password must be 6+ characters', 'error');
+  async function loadGlobalFeed() {
+    try {
+      const q = query(
+        collection(db, "posts"),
+        orderBy("createdAt", "desc")
+      );
+      const querySnapshot = await getDocs(q);
+      feedPosts.innerHTML = '';
+      if (querySnapshot.empty) {
+        feedPosts.innerHTML = '<p style="text-align:center;color:#999;">No posts yet. Be the first!</p>';
         return;
       }
-
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-
-        await setDoc(doc(db, "users", user.uid), {
-          email: user.email,
-          name: name || "Anonymous",
-          bio: bio || "New user",
-          level: "Beginner",
-          joinDate: new Date().toISOString(),
-          photoBase64: null,
-          editCount: 0
-        });
-
-        showMessage('Account created + Data saved!', 'success');
-        emailInput.value = '';
-        passwordInput.value = '';
-        nameInput.value = '';
-        bioInput.value = '';
-      } catch (error) {
-        showMessage(error.message, 'error');
+      for (const docSnap of querySnapshot.docs) {
+        const post = docSnap.data();
+        const isMyPost = auth.currentUser && post.userId === auth.currentUser.uid;
+        const postElement = await createPostElement(docSnap.id, post, isMyPost);
+        feedPosts.appendChild(postElement);
       }
-    });
+    } catch (error) {
+      showMessage('Error loading feed', 'error');
+    }
+  }
 
-    loginBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
+  async function getComments(postId) {
+    const q = query(
+      collection(db, "posts", postId, "comments"),
+      orderBy("createdAt", "asc")
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
+  }
 
-      if (!email ||!password) {
-        showMessage('Please fill ema
+  async function createPostElement(postId, post, canDelete) {
+    const div = document.createElement('div');
+    div.className = 'post';
+    const userPic = post.userPhoto || 'https://via.placeholder.com/40/0f3460/ffffff?text=' + post.userName.charAt(0);
+    const postDate = post.createdAt? new Date(post.createdAt) : new Date();
+    const currentUserId = auth.currentUser? auth.currentUser.uid : null;
+    const likes = post.likes || [];
+    const likedByUser = currentUserId && likes.includes(currentUserId);
+    const comments = await getComments(postId);
+    div.innerHTML = `
+      <div class="post-header">
+        <img src="${userPic}" alt="User" class="post-pic">
+        <div>
+          <div class="post-name">${post.userName}</div>
+          <div class="post-time">${timeAgo(postDate)}</div>
+        </div>
+      </div>
+      <div class="post-content">${post.content}</div>
+      <div class="post-actions">
+        <button class="action-btn like-btn ${likedByUser? 'liked' : ''}" data-id="${postId}" data-action="like">
+          ❤️ ${likes.length}
+        </button>
+        <button class="action-btn comment-toggle-btn" data-id="${postId}" data-action="toggle-comments">
+          💬 ${comments.length}
+        </button>
+        ${canDelete? `<button class="delete-post-btn" data-id="${postId}" data-action="delete">Delete</button>` : ''}
+      </div>
+      <div class="comments-section" id="comments-${postId}">
+        <div class="comments-list">
+          ${comments.map(comment => {
+            const commentPic = comment.userPhoto || 'https://via.placeholder.com/25/0f3460/ffffff?text=' + comment.userName.charAt(0);
+            const commentDate = comment.createdAt? new Date(comment.createdAt) : new Date();
+            return `
+              <div class="comment">
+                <div class="comment-header">
+                  <img src="${commentPic}" alt="User" class="comment-pic">
+                  <span class="comment-name">${comment.userName}</span>
+                  <span class="comment-time">${timeAgo(commentDate)}</span>
+                </div>
+                <div class="comment-text">${comment.content}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="comment-input-box">
+          <input type="text" class="comment-input" placeholder="Write a comment..." data-id="${postId}">
+          <button class="comment-btn" data-id="${postId}" data-action="comment">Send</button>
+        </div>
+      </div>
+    `;
+    return div;
+  }
+
+  // EVENT DELEGATION - ITO YUNG FIX WENGGAY
+  document.addEventListener('click', async (e) => {
+    const target = e.target.closest('button');
+    if (!target) return;
+
+    const action = target.dataset.action;
+    const postId = target.dataset.id;
+    const currentUserId = auth.currentUser? auth.currentUser.uid : null;
+
+    if (!action ||!postId ||!currentUserId) return;
+
+    if (action === 'like') {
+      const postRef = doc(db, "posts", postId);
+      const postDoc = await getDoc(postRef);
+      const likes = postDoc.data().likes || [];
+      const likedByUser = likes.includes(currentUserId);
+
+      if (likedByUser) {
+        await updateDoc(postRef, { likes: arrayRemove(currentUserId) });
+      } else {
+        await updateDoc(postRef, { likes: arrayUnion(currentUserId) });
+      }
+
+      if (profileSection.style.display!== 'none') {
+        await loadMyPosts(auth.currentUser.uid);
+      }
+      if (globalFeed.style.display!== 'none') {
+        await loadGlobalFeed();
+      }
+    }
+
+    if (action === 'toggle-comments') {
+      const commentsSection = document.getElementById(`comments-${postId}`);
+      commentsSection.style.display = commentsSection.style.display === 'none'? 'block' : 'none';
+    }
+
+    if (action === 'comment') {
+      const input = document.querySelector(`.comment-input[data-id="${postId}"]`);
+      const content = input.value.trim();
+      if (!content) return;
+
+      await addDoc(collection(db, "posts", postId, "comments"), {
+        userId: currentUserId,
+        userName: currentUserData.name,
+        userPhoto: currentUserData.photoBase64,
+        content: content,
+        createdAt: new Date().toISOString()
+      });
+
+      input.value = '';
+      if (profileSection.style.display!== 'none') {
+        await loadMyPosts(auth.currentUser.uid);
+      }
+      if (globalFeed.style.display!== 'none') {
+        await loadGlobalFeed();
+      }
+    }
+
+    if (action === 'delete') {
+      if (confirm('Delete this post?')) {
+        await deleteDoc(doc(db, "posts", postId));
+        showMessage('Post deleted', 'success');
+        await loadMyPosts(auth.currentUser.uid);
+        await loadGlobalFeed();
+      }
+    }
+  });
+
+  signUpBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const name = nameInput.value.trim();
+    const bio = bioInput.value.trim();
+    if (!email ||!password) {
+      showMessage('Please fill email and password', 'error');
+      return;
+    }
+    if (password.length < 6) {
+      showMessage('Password must be 6+ characters', 'error');
+      return;
+    }
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        name: name || "Anonymous",
+        bio: bio || "New user",
+        level: "Beginner",
+        joinDate: new Date().toISOString(),
+        photoBase64: null,
+        editCount: 0
+      });
+      showMessage('Account created + Data saved!', 'success');
+      emailInput.value = '';
+      passwordInput.value = '';
+      nameInput.value = '';
+      bioInput.value = '';
+    } catch (error) {
+      showMessage(error.message, 'error');
+    }
+  });
+
+  loginBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    if (!email ||!password) {
+      showMessage('Please fill email and password', 'error');
+      return;
+    }
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      showMessage('Logged in successfully!', 'success');
+    } catch (error) {
+      showMessage(error.message, 'error');
+    }
+  });
+
+  logoutBtn.addEventListener('click', async () => {
+    await signOut(auth);
+    showMessage('Logged out', 'success');
+  });
+
+  uploadBtn.addEventListener('click', () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 900000) {
+      showMessage('Image too large. Max 900KB', 'error');
+      return;
+    }
+    showMessage('Uploading...', 'success');
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64String = event.target.result;
+        const user = auth.currentUser;
+        await updateDoc(doc(db, "users", user.uid), {
+          photoBase64: base64String
+        });
+        showMessage('Profile picture updated!', 'success');
+        await loadProfile(user);
+        fileInput.value = '';
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      showMessage(error.message, 'error');
+    }
+  });
+
+  editBtn.addEventListener('click', () => {
+    dashboard.style.display = 'none';
+    editForm.style.display = 'block';
+    editNameInput.value = currentUserData.name;
+    editBioInput.value = currentUserData.bio;
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    editForm.style.display = 'none';
+    dashboard.style.display = 'block';
+  });
+
+  saveBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const newName = editNameInput.value.trim();
+    const newBio = editBioInput.value.trim();
+    if (!newName) {
+      showMessage('Name cannot be empty', 'error');
+      return;
+    }
+    try {
+      const user = auth.currentUser;
+      const userRef = doc(db, "users", user.uid);
+      const currentEditCount = currentUserData.editCount || 0;
+      const newEditCount = currentEditCount + 1;
+      let newLevel = "Beginner";
+      let levelEmoji = "🌱";
+      if (newEditCount >= 50) {
+        newLevel = "Legend";
+        levelEmoji = "👑";
+      } else if (newEditCount >= 20) {
+        newLevel = "Master";
+        levelEmoji = "🥷";
+      } else if (newEditCount >= 10) {
+        newLevel = "Expert";
+        levelEmoji = "⚡";
+      } else if (newEditCount >= 3) {
+        newLevel = "Intermediate";
+        levelEmoji = "🔥";
+      }
+      await updateDoc(userRef, {
+        name: newName,
+        bio: newBio,
+        editCount: newEditCount,
+        level: newLevel
+      });
+      if (newLevel!== currentUserData.level) {
+        showMessage(`${levelEmoji} LEVEL UP! You are now ${newLevel}! 🎉`, 'success');
+      } else {
+        showMessage('Profile updated!', 'success');
+      }
+      await loadProfile(user);
+      editForm.style.display = 'none';
+      dashboard.style.display = 'block';
+    } catch (error) {
+      showMessage(error.message, 'error');
+    }
+  });
+
+  postBtn.addEventListener('click', async () => {
+    const content = postInput.value.trim();
+    if (!content) {
+      showMessage('Post cannot be empty', 'error');
+      return;
+    }
+    try {
+      const user = auth.currentUser;
+      await addDoc(collection(db, "posts"), {
+        userId: user.uid,
+        userName: currentUserData.name,
+        userPhoto: currentUserData.photoBase64,
+        content: content,
+        likes: [],
+        createdAt: new Date().toISOString()
+      });
+      showMessage('Posted!', 'success');
+      postInput.value = '';
+      await loadMyPosts(user.uid);
+      await loadGlobalFeed();
+    } catch (error) {
+      showMessage(error.message, 'error');
+    }
+  });
+
+  profileBtn.addEventListener('click', () => {
+    profileSection.style.display = 'block';
+    globalFeed.style.display = 'none';
+  });
+
+  feedBtn.addEventListener('click', async () => {
+    profileSection.style.display = 'none';
+    globalFeed.style.display = 'block';
+    await loadGlobalFeed();
+  });
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      authForm.style.display = 'none';
+      dashboard.style.display = 'block';
+      editForm.style.display = 'none';
+      profileSection.style.display = 'block';
+      globalFeed.style.display = 'none';
+      await loadProfile(user);
+    } else {
+      authForm.style.display = 'block';
+      dashboard.style.display = 'none';
+      editForm.style.display = 'none';
+    }
+  });
+    </script>
