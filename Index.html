@@ -3,208 +3,163 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rowena Login - Full Stack</title>
+  <title>Firebase Auth + Firestore</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .container {
-      background: white;
-      padding: 40px 30px;
-      border-radius: 20px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-      width: 100%;
-      max-width: 400px;
-    }
-    h1 {
-      text-align: center;
-      color: #667eea;
-      margin-bottom: 10px;
-      font-size: 28px;
-    }
-    .subtitle {
-      text-align: center;
-      color: #666;
-      margin-bottom: 30px;
-      font-size: 14px;
-    }
-    input {
-      width: 100%;
-      padding: 15px;
-      margin: 10px 0;
-      border: 2px solid #e0e0e0;
-      border-radius: 10px;
-      font-size: 16px;
-      transition: 0.3s;
-    }
-    input:focus {
-      outline: none;
-      border-color: #667eea;
-    }
-    button {
-      width: 100%;
-      padding: 15px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .btn-signup {
-      background: #667eea;
-      color: white;
-    }
-    .btn-signup:hover {
-      background: #5568d3;
-      transform: translateY(-2px);
-    }
-    .btn-login {
-      background: #764ba2;
-      color: white;
-    }
-    .btn-login:hover {
-      background: #653a8f;
-      transform: translateY(-2px);
-    }
-    .btn-logout {
-      background: #ff4757;
-      color: white;
-      display: none;
-    }
-    #message {
-      text-align: center;
-      margin-top: 15px;
-      padding: 10px;
-      border-radius: 8px;
-      font-weight: bold;
-    }
-    .success { background: #d4edda; color: #155724; }
-    .error { background: #f8d7da; color: #721c24; }
-    #dashboard {
-      display: none;
-      text-align: center;
-    }
-    #dashboard h2 { color: #667eea; margin-bottom: 15px; }
-    #userEmail { color: #764ba2; font-weight: bold; }
+    body { font-family: Arial, sans-serif; background: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+    .container { background: #16213e; padding: 30px; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    h1 { text-align: center; color: #0f4c75; margin-bottom: 20px; }
+    input { width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 8px; background: #0f3460; color: #fff; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 8px; background: #e94560; color: #fff; font-weight: bold; cursor: pointer; }
+    button:hover { background: #c73e54; }
+    #messageDiv { padding: 10px; margin: 10px 0; border-radius: 8px; text-align: center; display: none; }
+    .success { background: #00b894; }
+    .error { background: #d63031; }
+    #dashboard { display: none; }
+    #logoutBtn { background: #636e72; }
   </style>
 </head>
 <body>
   <div class="container">
+    <h1>🔥 Firebase App</h1>
+    
+    <!-- AUTH FORM -->
     <div id="authForm">
-      <h1>Welcome Wena! 🔥</h1>
-      <p class="subtitle">Full-Stack Login System</p>
-      
-      <input type="email" id="email" placeholder="Email" autocomplete="email">
-      <input type="password" id="password" placeholder="Password (6+ chars)" autocomplete="current-password">
-      
-      <button class="btn-signup" id="signupBtn">Sign Up</button>
-      <button class="btn-login" id="loginBtn">Login</button>
-      
-      <div id="message"></div>
+      <input type="email" id="emailInput" placeholder="Email" required>
+      <input type="password" id="passwordInput" placeholder="Password" required>
+      <input type="text" id="nameInput" placeholder="Name (for Sign Up)">
+      <input type="text" id="bioInput" placeholder="Bio (for Sign Up)">
+      <button id="signUpBtn">Sign Up</button>
+      <button id="loginBtn">Login</button>
     </div>
 
+    <!-- DASHBOARD -->
     <div id="dashboard">
-      <h2>🎉 You're Logged In!</h2>
-      <p>Welcome back, <span id="userEmail"></span></p>
-      <p style="margin: 20px 0; color: #666;">This is your protected dashboard. Only logged-in users can see this.</p>
-      <button class="btn-logout" id="logoutBtn">Logout</button>
+      <h2>Welcome!</h2>
+      <p>Logged in as: <span id="userEmailSpan"></span></p>
+      <button id="logoutBtn">Logout</button>
     </div>
+
+    <div id="messageDiv"></div>
   </div>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    // IMPORT FIREBASE
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
+    // PASTE MO FIREBASE CONFIG MO DITO 👇
     const firebaseConfig = {
-  apiKey: "AIzaSyCeHwDLfwsAwXh6Wf0f...",
-  authDomain: "rowena-portfolio.firebaseapp.com",
-  projectId: "rowena-portfolio",
-  storageBucket: "rowena-portfolio.appspot.com",
-  messagingSenderId: "352213537262",
-  appId: "1:352213537262:web:b58a90..."
-};
+      apiKey: "PASTE_API_KEY_MO_DITO",
+      authDomain: "PASTE_AUTH_DOMAIN_MO_DITO",
+      projectId: "PASTE_PROJECT_ID_MO_DITO",
+      storageBucket: "PASTE_STORAGE_BUCKET_MO_DITO",
+      messagingSenderId: "PASTE_MESSAGING_SENDER_ID_MO_DITO",
+      appId: "PASTE_APP_ID_MO_DITO"
+    };
 
+    // INITIALIZE FIREBASE
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const signupBtn = document.getElementById('signupBtn');
+    // GET ELEMENTS - WALA NANG TYPO DITO
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const nameInput = document.getElementById('nameInput');
+    const bioInput = document.getElementById('bioInput');
+    const signUpBtn = document.getElementById('signUpBtn');
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
-    const messageDiv = document.getElementById('message');
+    const messageDiv = document.getElementById('messageDiv');
     const authForm = document.getElementById('authForm');
     const dashboard = document.getElementById('dashboard');
-    const userEmailSpan = document.getElementById('userEmail');
+    const userEmailSpan = document.getElementById('userEmailSpan');
 
+    // SHOW MESSAGE FUNCTION
     function showMessage(text, type) {
       messageDiv.textContent = text;
       messageDiv.className = type;
-      setTimeout(() => {
-        messageDiv.textContent = '';
-        messageDiv.className = '';
-      }, 4000);
+      messageDiv.style.display = 'block';
+      setTimeout(() => { messageDiv.style.display = 'none'; }, 4000);
     }
 
-    // SIGN UP FUNCTION
-signupBtn.addEventListener('click', async (e) => {
-  e.preventDefault(); // ← FIX #1: Wag mag-reload
-  const email = emailInput.value;
-  const password = passwordInput.value;
+    // SIGN UP - FIXED NA TO
+    signUpBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      const name = nameInput.value.trim();
+      const bio = bioInput.value.trim();
 
-  if (!email || !password) {
-    showMessage('Please fill in all fields', 'error');
-    return;
-  }
+      if (!email || !password) {
+        showMessage('Please fill email and password', 'error');
+        return;
+      }
 
-  if (password.length < 6) {
-    showMessage('Password must be 6+ characters', 'error');
-    return;
-  }
+      if (password.length < 6) {
+        showMessage('Password must be 6+ characters', 'error');
+        return;
+      }
 
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    
-    // SAVE TO FIRESTORE DATABASE
-    await setDoc(doc(db, "users", user.uid), {
-      email: user.email,
-      name: nameInput.value || "Anonymous",
-      bio: bioInput.value || "New user",
-      level: "Beginner",
-      joinDate: new Date().toISOString()
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        await setDoc(doc(db, "users", user.uid), {
+          email: user.email,
+          name: name || "Anonymous",
+          bio: bio || "New user",
+          level: "Beginner",
+          joinDate: new Date().toISOString()
+        });
+
+        showMessage('Account created + Data saved!', 'success');
+        emailInput.value = '';
+        passwordInput.value = '';
+        nameInput.value = '';
+        bioInput.value = '';
+      } catch (error) {
+        showMessage(error.message, 'error');
+      }
     });
 
-    showMessage('Account created + Data saved!', 'success');
-  } catch (error) {
-    showMessage(error.message, 'error');
-  }
-});
+    // LOGIN - FIXED NA TO
+    loginBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
 
+      if (!email || !password) {
+        showMessage('Please fill email and password', 'error');
+        return;
+      }
 
-loginBtn.addEventListener('click', async (e) => {
-  e.preventDefault(); // ← FIX #2: Wag mag-reload
-  const email = emailInput.value;
-  const password = passwordInput.value;
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        showMessage('Logged in successfully!', 'success');
+      } catch (error) {
+        showMessage(error.message, 'error');
+      }
+    });
 
-  if (!email || !password) {
-    showMessage('Please fill in all fields', 'error');
-    return;
-  }
+    // LOGOUT
+    logoutBtn.addEventListener('click', async () => {
+      await signOut(auth);
+      showMessage('Logged out', 'success');
+    });
 
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    showMessage('Logged in successfully!', 'success');
-  } catch (error) {
-    showMessage(error.message, 'error');
-  }
-});
+    // AUTH STATE LISTENER
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        authForm.style.display = 'none';
+        dashboard.style.display = 'block';
+        userEmailSpan.textContent = user.email;
+      } else {
+        authForm.style.display = 'block';
+        dashboard.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
