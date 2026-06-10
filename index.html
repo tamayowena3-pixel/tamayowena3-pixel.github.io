@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Day 3 - Rowena Web Dev</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* Hover Glow Effects - DAY 6 BEAST MODE */
+        button:hover {
+            background: #00ff41;
+            color: #0a0a0a;
+            box-shadow: 0 0 20px #00ff41, 0 0 40px #00ff41;
+            transform: scale(1.05);
+            transition: all 0.3s ease;
+        }
+        
+        a:hover {
+            text-shadow: 0 0 10px #00ff41;
+            transform: scale(1.1);
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, textarea:focus {
+            box-shadow: 0 0 15px #00ff41;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        /* Mobile Responsive - DAY 6 */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            button {
+                width: 90%;
+                font-size: 16px;
+            }
+            input, textarea {
+                width: 90% !important;
+            }
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #00ff41;
+            font-family: monospace;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            transition: all 0.3s;
+        }
+        
+        .light-mode {
+            background: #f0f0f0;
+            color: #0a0a0a;
+        }
+        
+        h1 {
+            font-size: 24px;
+            text-shadow: 0 0 10px #00ff41;
+            min-height: 30px;
+        }
+        
+        .light-mode h1 {
+            text-shadow: none;
+        }
+        
+        .box {
+            border: 3px solid #00ff41;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 10px;
+            background: #111;
+        }
+        
+        .light-mode .box {
+            background: white;
+            border-color: #0a0a0a;
+        }
+        
+        button {
+            background: #00ff41;
+            color: black;
+            padding: 12px 20px;
+            border: none;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            margin: 8px;
+            cursor: pointer;
+        }
+        
+        .light-mode button {
+            background: #0a0a0a;
+            color: white;
+        }
+        
+        #counter {
+            font-size: 30px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1 id="typing"></h1>
+        <p>10/10 Introvert | Day 3 Web Dev</p>
+        <p>1:52 AM Grind Session</p>
+        
+        <h2>Click Counter:</h2>
+        <div id="counter">0</div>
+        <button onclick="addCount()">Click Mo Ko!</button>
+        
+        <h2>Theme Switcher:</h2>
+        <button onclick="toggleTheme()">Light/Dark Mode</button>
+        
+        <h2>Contact Me:</h2>
+        <input type="text" id="name" placeholder="Name mo" style="padding:10px; margin:5px; width:80%; border-radius:5px; border:2px solid #00ff41; background:#111; color:#00ff41;">
+        <br>
+        <input type="email" id="email" placeholder="Email mo" style="padding:10px; margin:5px; width:80%; border-radius:5px; border:2px solid #00ff41; background:#111; color:#00ff41;">
+        <br>
+        <textarea id="message" placeholder="Message mo sakin..." style="padding:10px; margin:5px; width:80%; height:60px; border-radius:5px; border:2px solid #00ff41; background:#111; color:#00ff41;"></textarea>
+        <br>
+        <button onclick="sendMessage()">Send Message</button>
+        
+        <h2>Social Links:</h2>
+        <p>
+            <a href="https://www.facebook.com/share/1HQjxRSKcG/" target="_blank" style="color:#00ff41; margin:10px; text-decoration:none;">📘 Facebook</a>
+        </p>
+        
+        <h2>Goal Ko:</h2>
+        <p>₱50,000/month by January 2027</p>
+        
+        <h2>Skills Progress:</h2>
+        <p>✅ HTML - Day 1</p>
+        <p>✅ CSS - Day 1</p>
+        <p>✅ JavaScript - Day 3 Na!</p>
+        <p>🔲 Git/GitHub - Week 3</p>
+        
+        <img src="ako.jpg" style="width:120px; height:120px; border-radius:50%; border:3px solid #00ff41; margin:15px 0;">
+    </div>
+    
+    <p style="margin-top:30px; font-size:12px;">Built at 1:52 AM sa phone 📱</p>
+    
+    <script>
+        let count = 0;
+        
+        // TYPING ANIMATION - DAY 6
+        let text = "👋 Ako si ROWENA";
+        let i = 0;
+        function typeWriter() {
+            if (i < text.length) {
+                document.getElementById("typing").innerHTML += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, 100);
+            }
+        }
+        window.onload = typeWriter;
+        
+        function addCount() {
+            count = count + 1;
+            document.getElementById('counter').innerHTML = count;
+            if(count == 1){
+                alert('DAY 1 DONE! Na-approve nga ako sa WorldFirst kahit 5x reject!');
+            }
+            if(count == 5){
+                alert('DAY 3 NA! Ang OP mo Rowena! 5 clicks na!');
+            }
+            if(count == 10){
+                alert('10 CLICKS! Web Dev ka na talaga! ₱50k/month coming soon!');
+            }
+        }
+        
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+        }
+        
+        function sendMessage() {
+            let name = document.getElementById('name').value;
+            let email = document.getElementById('email').value;
+            let msg = document.getElementById('message').value;
+            
+            if(name == "" || email == "" || msg == ""){
+                alert('Rowena says: Fill up mo lahat bro!');
+            } else {
+                alert('Thanks ' + name + '! Message received: ' + msg + '\n\nReply kita sa ' + email + ' soon!');
+                document.getElementById('name').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('message').value = '';
+            }
+        }
+    </script>
+</body>
+</html>
