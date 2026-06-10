@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rowena's Weather App - Day 11</title>
+    <style>
+        * {margin: 0; padding: 0; box-sizing: border-box;}
+        body {
+            background: #0a0a0a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+      .container {
+            max-width: 400px;
+            width: 100%;
+            border: 2px solid #00ff00;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 0 20px #00ff00;
+            background: #111;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #00ff00;
+        }
+      .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #cityInput {
+            flex: 1;
+            background: #000;
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            color: #00ff00;
+            padding: 12px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+        }
+        #searchBtn {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+        }
+        #searchBtn:hover {
+            box-shadow: 0 0 15px #00ff00;
+        }
+      .weather-info {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #00ff00;
+            border-radius: 8px;
+            background: #1a1a1a;
+            display: none;
+        }
+      .weather-info.show {
+            display: block;
+        }
+      .temp {
+            font-size: 48px;
+            margin: 10px 0;
+            text-shadow: 0 0 10px #00ff00;
+        }
+      .city-name {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+      .desc {
+            font-size: 18px;
+            margin-bottom: 10px;
+            text-transform: capitalize;
+        }
+      .details {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+      .error {
+            color: #ff0000;
+            margin-top: 15px;
+            display: none;
+        }
+      .back {
+            margin-top: 20px;
+        }
+      .back a {
+            color: #00ff00;
+            text-decoration: none;
+            border: 1px solid #00ff00;
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Rowena's Weather ☁️</h1>
+        <div class="search-box">
+            <input type="text" id="cityInput" placeholder="Enter city name...">
+            <button id="searchBtn" onclick="getWeather()">Search</button>
+        </div>
+
+        <div class="weather-info" id="weatherInfo">
+            <div class="city-name" id="cityName"></div>
+            <div class="temp" id="temp"></div>
+            <div class="desc" id="desc"></div>
+            <div class="details">
+                <div>💧 Humidity: <span id="humidity"></span>%</div>
+                <div>💨 Wind: <span id="wind"></span> m/s</div>
+            </div>
+        </div>
+
+        <div class="error" id="error">City not found. Try again.</div>
+
+        <div class="back">
+            <a href="index.html">← Back to Portfolio</a>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = 'b1b15e88fa797225412429c1c50c122a1'; // Free demo key
+
+        async function getWeather() {
+            const city = document.getElementById('cityInput').value;
+            const weatherInfo = document.getElementById('weatherInfo');
+            const error = document.getElementById('error');
+
+            if (!city) return;
+
+            try {
+                const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`);
+                const data = await response.json();
+
+                if (data.cod === 200) {
+                    document.getElementById('cityName').textContent = data.name + ', ' + data.sys.country;
+                    document.getElementById('temp').textContent = Math.round(data.main.temp) + '°C';
+                    document.getElementById('desc').textContent = data.weather[0].description;
+                    document.getElementById('humidity').textContent = data.main.humidity;
+                    document.getElementById('wind').textContent = data.wind.speed;
+
+                    weatherInfo.classList.add('show');
+                    error.style.display = 'none';
+                } else {
+                    throw new Error('City not found');
+                }
+            } catch (err) {
+                weatherInfo.classList.remove('show');
+                error.style.display = 'block';
+            }
+        }
+
+        document.getElementById('cityInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') getWeather();
+        });
+    </script>
+</body>
+</html>
