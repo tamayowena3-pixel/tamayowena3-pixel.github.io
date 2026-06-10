@@ -1,229 +1,148 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Firebase Auth + Firestore</title>
-  <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      background: #1a1a2e; 
-      color: #fff; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      min-height: 100vh; 
-      margin: 0; 
-      padding: 20px; 
-    }
-    .container { 
-      background: #16213e; 
-      padding: 30px; 
-      border-radius: 15px; 
-      width: 100%; 
-      max-width: 400px; 
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-    }
-    h1 { 
-      text-align: center; 
-      color: #0f4c75; 
-      margin-bottom: 20px; 
-    }
-    input { 
-      width: 100%; 
-      padding: 12px; 
-      margin: 8px 0; 
-      border: none; 
-      border-radius: 8px; 
-      background: #0f3460; 
-      color: #fff; 
-      box-sizing: border-box; 
-      font-size: 16px;
-    }
-    button { 
-      width: 100%; 
-      padding: 12px; 
-      margin: 8px 0; 
-      border: none; 
-      border-radius: 8px; 
-      background: #e94560; 
-      color: #fff; 
-      font-weight: bold; 
-      cursor: pointer; 
-      font-size: 16px;
-    }
-    button:hover { background: #c73e54; }
-    button:disabled { background: #555; cursor: not-allowed; }
-    #messageDiv { 
-      padding: 10px; 
-      margin: 10px 0; 
-      border-radius: 8px; 
-      text-align: center; 
-      display: none; 
-      font-weight: bold;
-    }
-    .success { background: #00b894; }
-    .error { background: #d63031; }
-    #dashboard { display: none; }
-    #logoutBtn { background: #636e72; }
-    #logoutBtn:hover { background: #4a5255; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>🔥 Firebase App</h1>
+<script type="module">
+  // IMPORT FIREBASE SDK
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+  // FIREBASE CONFIG MO
+  const firebaseConfig = {
+    apiKey: "AIzaSyCeHwDLfwsAwXh6Wf0fwCw-nwSLSmPj_qI",
+    authDomain: "rowena-portfolio.firebaseapp.com",
+    projectId: "rowena-portfolio",
+    storageBucket: "rowena-portfolio.firebasestorage.app",
+    messagingSenderId: "352213537262",
+    appId: "1:352213537262:web:b58a90d30c1f5fa78f7eff"
+  };
+
+  // INITIALIZE FIREBASE
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // GET ALL ELEMENTS
+  const emailInput = document.getElementById('emailInput');
+  const passwordInput = document.getElementById('passwordInput');
+  const nameInput = document.getElementById('nameInput');
+  const bioInput = document.getElementById('bioInput');
+  const signUpBtn = document.getElementById('signUpBtn');
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const messageDiv = document.getElementById('messageDiv');
+  const authForm = document.getElementById('authForm');
+  const dashboard = document.getElementById('dashboard');
+  const userEmailSpan = document.getElementById('userEmailSpan');
+
+  // SHOW MESSAGE FUNCTION
+  function showMessage(text, type) {
+    messageDiv.textContent = text;
+    messageDiv.className = type;
+    messageDiv.style.display = 'block';
+    setTimeout(() => { 
+      messageDiv.style.display = 'none'; 
+    }, 5000);
+  }
+
+  // SIGN UP FUNCTION
+  signUpBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    signUpBtn.disabled = true;
     
-    <!-- AUTH FORM -->
-    <div id="authForm">
-      <input type="email" id="emailInput" placeholder="Email" autocomplete="email">
-      <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password">
-      <input type="text" id="nameInput" placeholder="Name (for Sign Up)" autocomplete="name">
-      <input type="text" id="bioInput" placeholder="Bio (for Sign Up)">
-      <button id="signUpBtn">Sign Up</button>
-      <button id="loginBtn">Login</button>
-    </div>
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const name = nameInput.value.trim();
+    const bio = bioInput.value.trim();
 
-    <!-- DASHBOARD -->
-    <div id="dashboard">
-      <h2>Welcome!</h2>
-      <p>Logged in as: <span id="userEmailSpan"></span></p>
-      <button id="logoutBtn">Logout</button>
-    </div>
-
-    <div id="messageDiv"></div>
-  </div>
-
-  <script type="module">
-    // IMPORT FIREBASE SDK
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
-    // WENA FIREBASE CONFIG MO - NAKA-KABIT NA
-    const firebaseConfig = {
-      apiKey: "AIzaSyCeHwDLfwsAwXh6Wf0fwCw-nwSLSmPj_qI",
-      authDomain: "rowena-portfolio.firebaseapp.com",
-      projectId: "rowena-portfolio",
-      storageBucket: "rowena-portfolio.firebasestorage.app",
-      messagingSenderId: "352213537262",
-      appId: "1:352213537262:web:b58a90d30c1f5fa78f7eff"
-    };
-
-    // INITIALIZE FIREBASE
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // GET ALL ELEMENTS
-    const emailInput = document.getElementById('emailInput');
-    const passwordInput = document.getElementById('passwordInput');
-    const nameInput = document.getElementById('nameInput');
-    const bioInput = document.getElementById('bioInput');
-    const signUpBtn = document.getElementById('signUpBtn');
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const messageDiv = document.getElementById('messageDiv');
-    const authForm = document.getElementById('authForm');
-    const dashboard = document.getElementById('dashboard');
-    const userEmailSpan = document.getElementById('userEmailSpan');
-
-    // SHOW MESSAGE FUNCTION
-    function showMessage(text, type) {
-      messageDiv.textContent = text;
-      messageDiv.className = type;
-      messageDiv.style.display = 'block';
-      setTimeout(() => { 
-        messageDiv.style.display = 'none'; 
-      }, 5000);
+    if (!email || !password) {
+      showMessage('Please fill email and password', 'error');
+      signUpBtn.disabled = false;
+      return;
     }
 
-    // SIGN UP FUNCTION
-    signUpBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      signUpBtn.disabled = true;
+    if (password.length < 6) {
+      showMessage('Password must be 6+ characters', 'error');
+      signUpBtn.disabled = false;
+      return;
+    }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
       
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-      const name = nameInput.value.trim();
-      const bio = bioInput.value.trim();
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        name: name || "Anonymous",
+        bio: bio || "New user",
+        level: "Beginner",
+        joinDate: new Date().toISOString()
+      });
 
-      if (!email || !password) {
-        showMessage('Please fill email and password', 'error');
-        signUpBtn.disabled = false;
-        return;
-      }
+      showMessage('Account created + Data saved!', 'success');
+      emailInput.value = '';
+      passwordInput.value = '';
+      nameInput.value = '';
+      bioInput.value = '';
+    } catch (error) {
+      showMessage(error.message, 'error');
+    } finally {
+      signUpBtn.disabled = false;
+    }
+  });
 
-      if (password.length < 6) {
-        showMessage('Password must be 6+ characters', 'error');
-        signUpBtn.disabled = false;
-        return;
-      }
+  // LOGIN FUNCTION
+  loginBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    loginBtn.disabled = true;
+    
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
 
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        
-        await setDoc(doc(db, "users", user.uid), {
-          email: user.email,
-          name: name || "Anonymous",
-          bio: bio || "New user",
-          level: "Beginner",
-          joinDate: new Date().toISOString()
-        });
+    if (!email || !password) {
+      showMessage('Please fill email and password', 'error');
+      loginBtn.disabled = false;
+      return;
+    }
 
-        showMessage('Account created + Data saved!', 'success');
-        emailInput.value = '';
-        passwordInput.value = '';
-        nameInput.value = '';
-        bioInput.value = '';
-      } catch (error) {
-        showMessage(error.message, 'error');
-      } finally {
-        signUpBtn.disabled = false;
-      }
-    });
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      showMessage('Logged in successfully!', 'success');
+    } catch (error) {
+      showMessage(error.message, 'error');
+    } finally {
+      loginBtn.disabled = false;
+    }
+  });
 
-    // LOGIN FUNCTION
-    loginBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      loginBtn.disabled = true;
+  // LOGOUT FUNCTION
+  logoutBtn.addEventListener('click', async () => {
+    await signOut(auth);
+    showMessage('Logged out', 'success');
+  });
+
+  // AUTH STATE LISTENER - BINAGO KO TO WENA 🔥
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      authForm.style.display = 'none';
+      dashboard.style.display = 'block';
       
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-
-      if (!email || !password) {
-        showMessage('Please fill email and password', 'error');
-        loginBtn.disabled = false;
-        return;
-      }
-
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        showMessage('Logged in successfully!', 'success');
-      } catch (error) {
-        showMessage(error.message, 'error');
-      } finally {
-        loginBtn.disabled = false;
-      }
-    });
-
-    // LOGOUT FUNCTION
-    logoutBtn.addEventListener('click', async () => {
-      await signOut(auth);
-      showMessage('Logged out', 'success');
-    });
-
-    // AUTH STATE LISTENER
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        authForm.style.display = 'none';
-        dashboard.style.display = 'block';
-        userEmailSpan.textContent = user.email;
+      // GET USER DATA FROM FIRESTORE
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        userEmailSpan.innerHTML = `
+          <strong>${userData.name}</strong><br>
+          ${userData.email}<br>
+          <small>Bio: ${userData.bio}</small><br>
+          <small>Level: ${userData.level}</small><br>
+          <small>Joined: ${new Date(userData.joinDate).toLocaleDateString()}</small>
+        `;
       } else {
-        authForm.style.display = 'block';
-        dashboard.style.display = 'none';
+        userEmailSpan.textContent = user.email;
       }
-    });
-  </script>
-</body>
-</html>
+      
+    } else {
+      authForm.style.display = 'block';
+      dashboard.style.display = 'none';
+    }
+  });
+</script>
