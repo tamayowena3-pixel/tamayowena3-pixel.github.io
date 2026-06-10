@@ -188,23 +188,29 @@
     }
 
     // LOAD PROFILE FUNCTION
-    async function loadProfile(user) {
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists()) {
-        currentUserData = userDoc.data();
-        const profilePic = currentUserData.photoBase64 || 'https://via.placeholder.com/100/0f3460/ffffff?text=' + currentUserData.name.charAt(0);
-
-        profileInfo.innerHTML = `
-          <img src="${profilePic}" alt="Profile" class="profile-pic">
-          <strong>Name:</strong> ${currentUserData.name}<br>
-          <strong>Email:</strong> ${currentUserData.email}<br>
-          <strong>Bio:</strong> ${currentUserData.bio}<br>
-          <strong>Level:</strong> ${currentUserData.level}<br>
-          <strong>Joined:</strong> ${new Date(currentUserData.joinDate).toLocaleDateString()}
-        `;
-      }
+async function loadProfile(user) {
+  const userDoc = await getDoc(doc(db, "users", user.uid));
+  if (userDoc.exists()) {
+    currentUserData = userDoc.data();
+    
+    // FIX: Add default editCount if missing
+    if (currentUserData.editCount === undefined) {
+      currentUserData.editCount = 0;
     }
+    
+    const profilePic = currentUserData.photoBase64 || 'https://via.placeholder.com/100/0f3460/ffffff?text=' + currentUserData.name.charAt(0);
 
+    profileInfo.innerHTML = `
+      <img src="${profilePic}" alt="Profile" class="profile-pic">
+      <strong>Name:</strong> ${currentUserData.name}<br>
+      <strong>Email:</strong> ${currentUserData.email}<br>
+      <strong>Bio:</strong> ${currentUserData.bio}<br>
+      <strong>Level:</strong> ${currentUserData.level}<br>
+      <strong>Edits:</strong> ${currentUserData.editCount}<br>
+      <strong>Joined:</strong> ${new Date(currentUserData.joinDate).toLocaleDateString()}
+    `;
+  }
+}
     // SIGN UP FUNCTION
           // SAVE BUTTON - WITH AUTO LEVEL UP
 saveBtn.addEventListener('click', async (e) => {
