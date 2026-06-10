@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebase Social App</title>
+    <title>Wenggay Legend App 👑</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
-    .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-    .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    .hidden { display: none!important; }
-    .like-btn.liked { color: #ef4444; }
-    .comment-box { background: rgba(255,255,255,0.03); }
-      button { cursor: pointer; }
+       .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+       .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+       .hidden { display: none!important; }
+       .like-btn.liked { color: #ef4444; }
+       .comment-box { background: rgba(255,255,255,0.03); }
+        button { cursor: pointer; }
     </style>
 </head>
 <body class="min-h-screen">
     <!-- Auth Screen -->
     <div id="auth-screen" class="min-h-screen flex items-center justify-center p-4">
         <div class="glass rounded-2xl p-8 w-full max-w-md">
-            <h1 class="text-3xl font-bold text-center mb-8">Welcome 👑</h1>
+            <h1 class="text-3xl font-bold text-center mb-8">Welcome Wenggay 👑</h1>
             <div id="login-form">
                 <input id="login-email" type="email" placeholder="Email" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
                 <input id="login-password" type="password" placeholder="Password" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
@@ -41,7 +41,7 @@
     <div id="main-app" class="hidden">
         <header class="glass sticky top-0 z-50 p-4">
             <div class="max-w-4xl mx-auto flex justify-between items-center">
-                <h1 class="text-2xl font-bold">Firebase Social</h1>
+                <h1 class="text-2xl font-bold">Wenggay Social 👑</h1>
                 <div class="flex items-center gap-4">
                     <div class="text-right">
                         <p id="user-name" class="font-semibold"></p>
@@ -76,7 +76,7 @@
             <div class="md:col-span-2 space-y-6">
                 <div class="glass rounded-2xl p-6">
                     <h2 class="text-xl font-bold mb-4">Create Post</h2>
-                    <textarea id="post-content" placeholder="What's on your mind?" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white mb-3 h-24"></textarea>
+                    <textarea id="post-content" placeholder="What's on your mind, Wenggay?" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white mb-3 h-24"></textarea>
                     <button id="create-post-btn" class="w-full btn-primary text-white p-3 rounded-lg font-semibold">Post</button>
                 </div>
                 <div id="posts-feed" class="space-y-4"></div>
