@@ -1,4 +1,100 @@
-<script type="module">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Auth + Firestore</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      background: #1a1a2e; 
+      color: #fff; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh; 
+      margin: 0; 
+      padding: 20px; 
+    }
+    .container { 
+      background: #16213e; 
+      padding: 30px; 
+      border-radius: 15px; 
+      width: 100%; 
+      max-width: 400px; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+    }
+    h1 { 
+      text-align: center; 
+      color: #0f4c75; 
+      margin-bottom: 20px; 
+    }
+    input { 
+      width: 100%; 
+      padding: 12px; 
+      margin: 8px 0; 
+      border: none; 
+      border-radius: 8px; 
+      background: #0f3460; 
+      color: #fff; 
+      box-sizing: border-box; 
+      font-size: 16px;
+    }
+    button { 
+      width: 100%; 
+      padding: 12px; 
+      margin: 8px 0; 
+      border: none; 
+      border-radius: 8px; 
+      background: #e94560; 
+      color: #fff; 
+      font-weight: bold; 
+      cursor: pointer; 
+      font-size: 16px;
+    }
+    button:hover { background: #c73e54; }
+    button:disabled { background: #555; cursor: not-allowed; }
+    #messageDiv { 
+      padding: 10px; 
+      margin: 10px 0; 
+      border-radius: 8px; 
+      text-align: center; 
+      display: none; 
+      font-weight: bold;
+    }
+    .success { background: #00b894; }
+    .error { background: #d63031; }
+    #dashboard { display: none; }
+    #logoutBtn { background: #636e72; }
+    #logoutBtn:hover { background: #4a5255; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔥 Firebase App</h1>
+    
+    <!-- AUTH FORM -->
+    <div id="authForm">
+      <input type="email" id="emailInput" placeholder="Email" autocomplete="email">
+      <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password">
+      <input type="text" id="nameInput" placeholder="Name (for Sign Up)" autocomplete="name">
+      <input type="text" id="bioInput" placeholder="Bio (for Sign Up)">
+      <button id="signUpBtn">Sign Up</button>
+      <button id="loginBtn">Login</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard">
+      <h2>Welcome!</h2>
+      <p>Logged in as: <span id="userEmailSpan"></span></p>
+      <button id="logoutBtn">Logout</button>
+    </div>
+
+    <div id="messageDiv"></div>
+  </div>
+
+
+ <script type="module">
   // IMPORT FIREBASE SDK
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
@@ -145,4 +241,6 @@
       dashboard.style.display = 'none';
     }
   });
-</script>
+ </script>
+</body>
+</html>
