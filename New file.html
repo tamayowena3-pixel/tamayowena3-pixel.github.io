@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Social App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
+    .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .hidden { display: none!important; }
+    .like-btn.liked { color: #ef4444; }
+    .comment-box { background: rgba(255,255,255,0.03); }
+      button { cursor: pointer; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="glass rounded-2xl p-8 w-full max-w-md">
+            <h1 class="text-3xl font-bold text-center mb-8">Welcome 👑</h1>
+            <div id="login-form">
+                <input id="login-email" type="email" placeholder="Email" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
+                <input id="login-password" type="password" placeholder="Password" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
+                <button id="login-btn" class="w-full btn-primary text-white p-3 rounded-lg font-semibold mb-4">Login</button>
+                <p class="text-center text-gray-400">No account? <span id="show-signup" class="text-purple-400 cursor-pointer">Sign up</span></p>
+            </div>
+            <div id="signup-form" class="hidden">
+                <input id="signup-name" type="text" placeholder="Full Name" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
+                <input id="signup-email" type="email" placeholder="Email" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
+                <input id="signup-password" type="password" placeholder="Password" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
+                <button id="signup-btn" class="w-full btn-primary text-white p-3 rounded-lg font-semibold mb-4">Sign Up</button>
+                <p class="text-center text-gray-400">Have account? <span id="show-login" class="text-purple-400 cursor-pointer">Login</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="main-app" class="hidden">
+        <header class="glass sticky top-0 z-50 p-4">
+            <div class="max-w-4xl mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-bold">Firebase Social</h1>
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <p id="user-name" class="font-semibold"></p>
+                        <p class="text-xs text-gray-400">Level <span id="user-level">1</span></p>
+                    </div>
+                    <button id="logout-btn" class="bg-red-500/20 text-red-400 px-4 py-2 rounded-lg">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-4xl mx-auto p-4 grid md:grid-cols-3 gap-6">
+            <div class="md:col-span-1">
+                <div class="glass rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-4">Profile</h2>
+                    <div class="text-center mb-4">
+                        <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl font-bold">
+                            <span id="profile-initial">W</span>
+                        </div>
+                        <h3 id="profile-name" class="font-semibold text-lg"></h3>
+                        <p id="profile-bio" class="text-gray-400 text-sm mt-2">Click edit to add bio</p>
+                    </div>
+                    <textarea id="bio-input" placeholder="Write your bio..." class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white text-sm mb-3 hidden"></textarea>
+                    <button id="edit-bio-btn" class="w-full bg-white/10 text-white p-2 rounded-lg text-sm mb-3">Edit Bio</button>
+                    <button id="save-bio-btn" class="w-full btn-primary text-white p-2 rounded-lg text-sm mb-3 hidden">Save Bio</button>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-400">Posts</span><span id="post-count">0</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">Level</span><span id="profile-level">1</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="md:col-span-2 space-y-6">
+                <div class="glass rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-4">Create Post</h2>
+                    <textarea id="post-content" placeholder="What's on your mind?" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white mb-3 h-24"></textarea>
+                    <button id="create-post-btn" class="w-full btn-primary text-white p-3 rounded-lg font-semibold">Post</button>
+                </div>
+                <div id="posts-feed" class="space-y-4"></div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCeHwDLfwsAwXh6Wf0fwCw-nwSLSmPj_qI",
+            authDomain: "rowena-portfolio.firebaseapp.com",
+            projectId: "rowena-portfolio",
+            storageBucket: "rowena-portfolio.firebasestorage.app",
+            messagingSenderId: "352213537262",
+            appId: "1:352213537262:web:b58a90d30c1f5fa78f7eff"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const authScreen = document.getElementById('auth-screen');
+        const mainApp = document.getElementById('main-app');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const showSignup = document.getElementById('show-signup');
+        const showLogin = document.getElementById('show-login');
+        const loginBtn = document.getElementById('login-btn');
+        const signupBtn = document.getElementById('signup-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const createPostBtn = document.getElementById('create-post-btn');
+        const postContent = document.getElementById('post-content');
+        const postsFeed = document.getElementById('posts-feed');
+        const userName = document.getElementById('user-name');
+        const userLevel = document.getElementById('user-level');
+        const profileName = document.getElementById('profile-name');
+        const profileBio = document.getElementById('profile-bio');
+        const profileInitial = document.getElementById('profile-initial');
+        const profileLevel = document.getElementById('profile-level');
+        const postCount = document.getElementById('post-count');
+        const editBioBtn = document.getElementById('edit-bio-btn');
+        const saveBioBtn = document.getElementById('save-bio-btn');
+        const bioInput = document.getElementById('bio-input');
+
+        let currentUser = null;
+        let userData = null;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                await loadUserData();
+                authScreen.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                loadPosts();
+            } else {
+                currentUser = null;
+                authScreen.classList.remove('hidden');
+                mainApp.classList.add('hidden');
+            }
+        });
+
+        showSignup.onclick = () => {
+            loginForm.classList.add('hidden');
+            signupForm.classList.remove('hidden');
+        };
+        showLogin.onclick = () => {
+            signupForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        };
+
+        signupBtn.onclick = async () => {
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            if (!name ||!email ||!password) return alert('Fill all fields');
+            try {
+                const userCred = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(userCred.user, { displayName: name });
+                await setDoc(doc(db, 'users', userCred.user.uid), {
+                    name: name, email: email, bio: '', level: 1, posts: 0, createdAt: serverTimestamp()
+                });
+            } catch (error) {
+                alert('Signup failed: ' + error.message);
+            }
+        };
+
+        loginBtn.onclick = async () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            if (!email ||!password) return alert('Fill all fields');
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                alert('Login failed: ' + error.message);
+            }
+        };
+
+        logoutBtn.onclick = () => signOut(auth);
+
+        async function loadUserData() {
+            const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+            if (userDoc.exists()) {
+                userData = userDoc.data();
+                userName.textContent = userData.name || 'User';
+                profileName.textContent = userData.name || 'User';
+                profileBio.textContent = userData.bio || 'Click edit to add bio';
+                profileInitial.textContent = (userData.name || 'U')[0].toUpperCase();
+                userLevel.textContent = userData.level || 1;
+                profileLevel.textContent = userData.level || 1;
+                postCount.textContent = userData.posts || 0;
+            }
+        }
+
+        editBioBtn.onclick = () => {
+            bioInput.value = userData.bio || '';
+            bioInput.classList.remove('hidden');
+            saveBioBtn.classList.remove('hidden');
+            editBioBtn.classList.add('hidden');
+            profileBio.classList.add('hidden');
+        };
+
+        saveBioBtn.onclick = async () => {
+            const newBio = bioInput.value;
+            await updateDoc(doc(db, 'users', currentUser.uid), { bio: newBio });
+            userData.bio = newBio;
+            profileBio.textContent = newBio || 'Click edit to add bio';
+            bioInput.classList.add('hidden');
+            saveBioBtn.classList.add('hidden');
+            editBioBtn.classList.remove('hidden');
+            profileBio.classList.remove('hidden');
+        };
+
+        createPostBtn.onclick = async () => {
+            const content = postContent.value.trim();
+            if (!content) return;
+            try {
+                await addDoc(collection(db, 'posts'), {
+                    content: content, authorId: currentUser.uid, authorName: userData.name,
+                    likes: [], comments: [], createdAt: serverTimestamp()
+                });
+                await updateDoc(doc(db, 'users', currentUser.uid), {
+                    posts: increment(1), level: Math.floor(((userData.posts || 0) + 1) / 5) + 1
+                });
+                postContent.value = '';
+                await loadUserData();
+            } catch (error) {
+                alert('Post failed: ' + error.message);
+            }
+        };
+
+        function loadPosts() {
+            const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
+            onSnapshot(q, (snapshot) => {
+                postsFeed.innerHTML = '';
+                if (snapshot.empty) {
+                    postsFeed.innerHTML = '<div class="glass rounded-2xl p-6 text-center text-gray-400">No posts yet. Create one!</div>';
+                    return;
+                }
+                snapshot.forEach((doc) => {
+                    try {
+                        const post = doc.data();
+                        const postId = doc.id;
+                        const isLiked = post.likes?.includes(currentUser.uid);
+                        const isOwner = post.authorId === currentUser.uid;
+                        
+                        let timeString = 'Just now';
+                        try {
+                            if (post.createdAt && typeof post.createdAt.toDate === 'function') {
+                                timeString = post.createdAt.toDate().toLocaleString();
+                            } else if (post.createdAt) {
+                                timeString = new Date(post.createdAt).toLocaleString();
+                            }
+                        } catch(e) {}
+                        
+                        const postEl = document.createElement('div');
+                        postEl.className = 'glass rounded-2xl p-6';
+                        postEl.innerHTML = `
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="font-semibold">${post.authorName || 'Anonymous'}</h3>
+                                    <p class="text-xs text-gray-400">${timeString}</p>
+                                </div>
+                                ${isOwner? `<button class="delete-post text-red-400 text-sm" data-id="${postId}">Delete</button>` : ''}
+                            </div>
+                            <p class="mb-4">${post.content || ''}</p>
+                            <div class="flex gap-4 text-sm text-gray-400 border-t border-white/10 pt-4">
+                                <button class="like-btn flex items-center gap-1 ${isLiked? 'liked' : ''}" data-id="${postId}">
+                                    <span>❤️</span> <span>${post.likes?.length || 0}</span>
+                                </button>
+                                <button class="comment-btn flex items-center gap-1" data-id="${postId}">
+                                    <span>💬</span> <span>${post.comments?.length || 0}</span>
+                                </button>
+                            </div>
+                            <div class="comments-section mt-4 hidden" id="comments-${postId}">
+                                <div class="comments-list space-y-2 mb-3"></div>
+                                <div class="flex gap-2">
+                                    <input type="text" placeholder="Write a comment..." class="comment-input flex-1 p-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm">
+                                    <button class="send-comment bg-purple-500 text-white px-4 py-2 rounded-lg text-sm" data-id="${postId}">Send</button>
+                                </div>
+                            </div>
+                        `;
+                        postsFeed.appendChild(postEl);
+
+                        const commentsList = postEl.querySelector('.comments-list');
+                        if (post.comments?.length > 0) {
+                            post.comments.forEach(comment => {
+                                const commentEl = document.createElement('div');
+                                commentEl.className = 'comment-box p-3 rounded-lg text-sm';
+                                commentEl.innerHTML = `<span class="font-semibold">${comment.authorName}:</span> ${comment.text}`;
+                                commentsList.appendChild(commentEl);
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error rendering post:', error);
+                    }
+                });
+            }, (error) => {
+                console.error('Posts load error:', error);
+                postsFeed.innerHTML = '<div class="glass rounded-2xl p-6 text-center text-red-400">Error loading posts. Check console.</div>';
+            });
+        }
+
+        postsFeed.addEventListener('click', async (e) => {
+            const target = e.target.closest('button');
+            if (!target) return;
+            const postId = target.dataset.id;
+            if (!postId) return;
+
+            if (target.classList.contains('like-btn')) {
+                const postRef = doc(db, 'posts', postId);
+                const postDoc = await getDoc(postRef);
+                const likes = postDoc.data().likes || [];
+                if (likes.includes(currentUser.uid)) {
+                    await updateDoc(postRef, { likes: arrayRemove(currentUser.uid) });
+                } else {
+                    await updateDoc(postRef, { likes: arrayUnion(currentUser.uid) });
+                }
+            }
+
+            if (target.classList.contains('comment-btn')) {
+                document.getElementById(`comments-${postId}`).classList.toggle('hidden');
+            }
+
+            if (target.classList.contains('send-comment')) {
+                const commentInput = target.previousElementSibling;
+                const text = commentInput.value.trim();
+                if (!text) return;
+                await updateDoc(doc(db, 'posts', postId), {
+                    comments: arrayUnion({ text: text, authorId: currentUser.uid, authorName: userData.name, createdAt: new Date() })
+                });
+                commentInput.value = '';
+            }
+
+            if (target.classList.contains('delete-post')) {
+                if (confirm('Delete this post?')) {
+                    await deleteDoc(doc(db, 'posts', postId));
+                    await updateDoc(doc(db, 'users', currentUser.uid), { posts: increment(-1) });
+                    await loadUserData();
+                }
+            }
+        });
+    </script>
+</body>
+  </html>
