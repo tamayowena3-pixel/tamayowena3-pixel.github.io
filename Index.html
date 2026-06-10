@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Firebase App</title>
+  <title>Firebase Social App</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,7 +11,7 @@
       color: #fff;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       min-height: 100vh;
       margin: 0;
       padding: 20px;
@@ -21,7 +21,7 @@
       padding: 30px;
       border-radius: 15px;
       width: 100%;
-      max-width: 400px;
+      max-width: 500px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       position: relative;
       z-index: 1;
@@ -44,6 +44,7 @@
       font-family: Arial, sans-serif;
       position: relative;
       z-index: 2;
+      resize: vertical;
     }
     button {
       width: 100%;
@@ -82,6 +83,12 @@
     #cancelBtn { background: #636e72; }
     #uploadBtn { background: #6c5ce7; }
     #uploadBtn:hover { background: #5a4fcf; }
+    #postBtn { background: #00b894; }
+    #postBtn:hover { background: #00a085; }
+    #feedBtn { background: #0984e3; }
+    #feedBtn:hover { background: #0870c0; }
+    #profileBtn { background: #6c5ce7; }
+    #profileBtn:hover { background: #5a4fcf; }
     .profile-info {
       background: #0f3460;
       padding: 15px;
@@ -102,11 +109,67 @@
     .file-input {
       display: none;
     }
+    .post {
+      background: #0f3460;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      text-align: left;
+    }
+    .post-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .post-pic {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 10px;
+      border: 2px solid #e94560;
+    }
+    .post-name {
+      font-weight: bold;
+      color: #00b894;
+    }
+    .post-time {
+      font-size: 12px;
+      color: #999;
+    }
+    .post-content {
+      margin: 10px 0;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+    .delete-post-btn {
+      background: #d63031;
+      padding: 5px 10px;
+      font-size: 12px;
+      width: auto;
+      margin-top: 5px;
+    }
+    .delete-post-btn:hover { background: #b02324; }
+    .nav-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .nav-buttons button {
+      flex: 1;
+      margin: 0;
+    }
+    #globalFeed, #myPosts { display: none; }
+    .section-title {
+      text-align: center;
+      margin: 20px 0 10px;
+      color: #00b894;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🔥 Firebase App</h1>
+    <h1>🔥 Firebase Social</h1>
 
     <!-- AUTH FORM -->
     <div id="authForm">
@@ -120,12 +183,33 @@
 
     <!-- DASHBOARD -->
     <div id="dashboard">
-      <h2>Welcome!</h2>
-      <div class="profile-info" id="profileInfo"></div>
-      <input type="file" id="fileInput" class="file-input" accept="image/*">
-      <button id="uploadBtn">Upload Profile Picture</button>
-      <button id="editBtn">Edit Profile</button>
-      <button id="logoutBtn">Logout</button>
+      <div class="nav-buttons">
+        <button id="profileBtn">Profile</button>
+        <button id="feedBtn">Global Feed</button>
+        <button id="logoutBtn">Logout</button>
+      </div>
+
+      <!-- PROFILE SECTION -->
+      <div id="profileSection">
+        <h2 class="section-title">Your Profile</h2>
+        <div class="profile-info" id="profileInfo"></div>
+        <input type="file" id="fileInput" class="file-input" accept="image/*">
+        <button id="uploadBtn">Upload Profile Picture</button>
+        <button id="editBtn">Edit Profile</button>
+        
+        <h3 class="section-title">Create Post</h3>
+        <textarea id="postInput" placeholder="What's on your mind?" rows="3"></textarea>
+        <button id="postBtn">Post</button>
+        
+        <h3 class="section-title">Your Posts</h3>
+        <div id="myPosts"></div>
+      </div>
+
+      <!-- GLOBAL FEED SECTION -->
+      <div id="globalFeed">
+        <h2 class="section-title">Global Feed</h2>
+        <div id="feedPosts"></div>
+      </div>
     </div>
 
     <!-- EDIT FORM -->
@@ -143,7 +227,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, query, orderBy, getDocs, deleteDoc, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCeHwDLfwsAwXh6Wf0fwCw-nwSLSmPj_qI",
@@ -170,6 +254,10 @@
     const cancelBtn = document.getElementById('cancelBtn');
     const uploadBtn = document.getElementById('uploadBtn');
     const fileInput = document.getElementById('fileInput');
+    const postBtn = document.getElementById('postBtn');
+    const postInput = document.getElementById('postInput');
+    const feedBtn = document.getElementById('feedBtn');
+    const profileBtn = document.getElementById('profileBtn');
     const messageDiv = document.getElementById('messageDiv');
     const authForm = document.getElementById('authForm');
     const dashboard = document.getElementById('dashboard');
@@ -177,6 +265,10 @@
     const profileInfo = document.getElementById('profileInfo');
     const editNameInput = document.getElementById('editNameInput');
     const editBioInput = document.getElementById('editBioInput');
+    const profileSection = document.getElementById('profileSection');
+    const globalFeed = document.getElementById('globalFeed');
+    const feedPosts = document.getElementById('feedPosts');
+    const myPosts = document.getElementById('myPosts');
 
     let currentUserData = null;
 
@@ -189,6 +281,17 @@
       }, 4000);
     }
 
+    function timeAgo(date) {
+      const seconds = Math.floor((new Date() - date) / 1000);
+      if (seconds < 60) return 'Just now';
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      return `${days}d ago`;
+    }
+
     async function loadProfile(user) {
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -198,6 +301,12 @@
           if (currentUserData.editCount === undefined) currentUserData.editCount = 0;
           if (currentUserData.level === undefined) currentUserData.level = "Beginner";
           
+          let levelEmoji = "🌱";
+          if (currentUserData.level === "Intermediate") levelEmoji = "🔥";
+          if (currentUserData.level === "Expert") levelEmoji = "⚡";
+          if (currentUserData.level === "Master") levelEmoji = "🥷";
+          if (currentUserData.level === "Legend") levelEmoji = "👑";
+          
           const profilePic = currentUserData.photoBase64 || 'https://via.placeholder.com/100/0f3460/ffffff?text=' + currentUserData.name.charAt(0);
 
           profileInfo.innerHTML = `
@@ -205,15 +314,100 @@
             <strong>Name:</strong> ${currentUserData.name}<br>
             <strong>Email:</strong> ${currentUserData.email}<br>
             <strong>Bio:</strong> ${currentUserData.bio}<br>
-            <strong>Level:</strong> ${currentUserData.level}<br>
+            <strong>Level:</strong> ${levelEmoji} ${currentUserData.level}<br>
             <strong>Edits:</strong> ${currentUserData.editCount}<br>
             <strong>Joined:</strong> ${new Date(currentUserData.joinDate).toLocaleDateString()}
           `;
+          
+          await loadMyPosts(user.uid);
         }
       } catch (error) {
         console.log(error);
         showMessage('Error loading profile', 'error');
       }
+    }
+
+    async function loadMyPosts(userId) {
+      try {
+        const q = query(
+          collection(db, "posts"),
+          where("userId", "==", userId),
+          orderBy("createdAt", "desc")
+        );
+        const querySnapshot = await getDocs(q);
+        
+        myPosts.innerHTML = '';
+        if (querySnapshot.empty) {
+          myPosts.innerHTML = '<p style="text-align:center;color:#999;">No posts yet. Create one!</p>';
+          return;
+        }
+        
+        querySnapshot.forEach((doc) => {
+          const post = doc.data();
+          const postElement = createPostElement(doc.id, post, true);
+          myPosts.appendChild(postElement);
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    async function loadGlobalFeed() {
+      try {
+        const q = query(
+          collection(db, "posts"),
+          orderBy("createdAt", "desc")
+        );
+        const querySnapshot = await getDocs(q);
+        
+        feedPosts.innerHTML = '';
+        if (querySnapshot.empty) {
+          feedPosts.innerHTML = '<p style="text-align:center;color:#999;">No posts yet. Be the first!</p>';
+          return;
+        }
+        
+        querySnapshot.forEach((doc) => {
+          const post = doc.data();
+          const isMyPost = auth.currentUser && post.userId === auth.currentUser.uid;
+          const postElement = createPostElement(doc.id, post, isMyPost);
+          feedPosts.appendChild(postElement);
+        });
+      } catch (error) {
+        console.log(error);
+        showMessage('Error loading feed', 'error');
+      }
+    }
+
+    function createPostElement(postId, post, canDelete) {
+      const div = document.createElement('div');
+      div.className = 'post';
+      
+      const userPic = post.userPhoto || 'https://via.placeholder.com/40/0f3460/ffffff?text=' + post.userName.charAt(0);
+      const postDate = post.createdAt ? new Date(post.createdAt) : new Date();
+      
+      div.innerHTML = `
+        <div class="post-header">
+          <img src="${userPic}" alt="User" class="post-pic">
+          <div>
+            <div class="post-name">${post.userName}</div>
+            <div class="post-time">${timeAgo(postDate)}</div>
+          </div>
+        <div class="post-content">${post.content}</div>
+        ${canDelete ? `<button class="delete-post-btn" data-id="${postId}">Delete</button>` : ''}
+      `;
+      
+      if (canDelete) {
+        div.querySelector('.delete-post-btn').addEventListener('click', async () => {
+          if (confirm('Delete this post?')) {
+            await deleteDoc(doc(db, "posts", postId));
+            showMessage('Post deleted', 'success');
+            await loadMyPosts(auth.currentUser.uid);
+            await loadGlobalFeed();
+          }
+        });
+      }
+      
+      return div;
     }
 
     signUpBtn.addEventListener('click', async (e) => {
@@ -345,10 +539,20 @@
         const newEditCount = currentEditCount + 1;
         
         let newLevel = "Beginner";
-        if (newEditCount >= 10) {
+        let levelEmoji = "🌱";
+        
+        if (newEditCount >= 50) {
+          newLevel = "Legend";
+          levelEmoji = "👑";
+        } else if (newEditCount >= 20) {
+          newLevel = "Master";
+          levelEmoji = "🥷";
+        } else if (newEditCount >= 10) {
           newLevel = "Expert";
+          levelEmoji = "⚡";
         } else if (newEditCount >= 3) {
           newLevel = "Intermediate";
+          levelEmoji = "🔥";
         }
 
         await updateDoc(userRef, {
@@ -359,7 +563,7 @@
         });
 
         if (newLevel !== currentUserData.level) {
-          showMessage(`Profile updated! You leveled up to ${newLevel}! 🎉`, 'success');
+          showMessage(`${levelEmoji} LEVEL UP! You are now ${newLevel}! 🎉`, 'success');
         } else {
           showMessage('Profile updated!', 'success');
         }
@@ -373,11 +577,52 @@
       }
     });
 
+    postBtn.addEventListener('click', async () => {
+      const content = postInput.value.trim();
+      
+      if (!content) {
+        showMessage('Post cannot be empty', 'error');
+        return;
+      }
+
+      try {
+        const user = auth.currentUser;
+        
+        await addDoc(collection(db, "posts"), {
+          userId: user.uid,
+          userName: currentUserData.name,
+          userPhoto: currentUserData.photoBase64,
+          content: content,
+          createdAt: new Date().toISOString()
+        });
+
+        showMessage('Posted!', 'success');
+        postInput.value = '';
+        await loadMyPosts(user.uid);
+        await loadGlobalFeed();
+      } catch (error) {
+        showMessage(error.message, 'error');
+      }
+    });
+
+    profileBtn.addEventListener('click', () => {
+      profileSection.style.display = 'block';
+      globalFeed.style.display = 'none';
+    });
+
+    feedBtn.addEventListener('click', async () => {
+      profileSection.style.display = 'none';
+      globalFeed.style.display = 'block';
+      await loadGlobalFeed();
+    });
+
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         authForm.style.display = 'none';
         dashboard.style.display = 'block';
         editForm.style.display = 'none';
+        profileSection.style.display = 'block';
+        globalFeed.style.display = 'none';
         await loadProfile(user);
       } else {
         authForm.style.display = 'block';
