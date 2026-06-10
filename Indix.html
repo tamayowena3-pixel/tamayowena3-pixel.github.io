@@ -8,11 +8,11 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
-       .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-       .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-       .hidden { display: none!important; }
-       .like-btn.liked { color: #ef4444; }
-       .comment-box { background: rgba(255,255,255,0.03); }
+      .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+      .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+      .hidden { display: none!important; }
+      .like-btn.liked { color: #ef4444; }
+      .comment-box { background: rgba(255,255,255,0.03); }
     </style>
 </head>
 <body class="min-h-screen">
@@ -95,14 +95,14 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-        // PALITAN MO TO NG FIREBASE CONFIG MO WENGGAY
+        // ITO NA YUNG CONFIG MO WENGGAY - NAKA-LAGAY NA
         const firebaseConfig = {
-            apiKey: "AIzaSyDQqA4cV1LgHH36UQL0OyBC6B_nlYqGpYo",
+            apiKey: "AIzaSyCeHwDLfwsAwXh6Wf0fwCw-nwSLSmPj_qI",
             authDomain: "rowena-portfolio.firebaseapp.com",
             projectId: "rowena-portfolio",
-            storageBucket: "rowena-portfolio.appspot.com",
-            messagingSenderId: "160414726877",
-            appId: "1:160414726877:web:0dc66f5d6084564f2f3b7a"
+            storageBucket: "rowena-portfolio.firebasestorage.app",
+            messagingSenderId: "352213537262",
+            appId: "1:352213537262:web:b58a90d30c1f5fa78f7eff"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -309,7 +309,7 @@
             });
         }
 
-        // 4. Event Delegation for Like/Comment/Delete - ETO YUNG FIX WENGGAY
+        // Event Delegation for Like/Comment/Delete
         postsFeed.addEventListener('click', async (e) => {
             const target = e.target.closest('button');
             if (!target) return;
@@ -331,7 +331,7 @@
                 }
             }
 
-            // Comment Button - Show/Hide
+            // Comment Button
             if (target.classList.contains('comment-btn')) {
                 const commentsSection = document.getElementById(`comments-${postId}`);
                 commentsSection.classList.toggle('hidden');
