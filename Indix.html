@@ -8,11 +8,12 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
-      .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-      .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-      .hidden { display: none!important; }
-      .like-btn.liked { color: #ef4444; }
-      .comment-box { background: rgba(255,255,255,0.03); }
+     .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+     .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+     .hidden { display: none!important; }
+     .like-btn.liked { color: #ef4444; }
+     .comment-box { background: rgba(255,255,255,0.03); }
+      button { cursor: pointer; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -38,7 +39,6 @@
 
     <!-- Main App -->
     <div id="main-app" class="hidden">
-        <!-- Header -->
         <header class="glass sticky top-0 z-50 p-4">
             <div class="max-w-4xl mx-auto flex justify-between items-center">
                 <h1 class="text-2xl font-bold">Firebase Social</h1>
@@ -52,9 +52,7 @@
             </div>
         </header>
 
-        <!-- Main Content -->
         <main class="max-w-4xl mx-auto p-4 grid md:grid-cols-3 gap-6">
-            <!-- Profile -->
             <div class="md:col-span-1">
                 <div class="glass rounded-2xl p-6">
                     <h2 class="text-xl font-bold mb-4">Profile</h2>
@@ -75,16 +73,12 @@
                 </div>
             </div>
 
-            <!-- Feed -->
             <div class="md:col-span-2 space-y-6">
-                <!-- Create Post -->
                 <div class="glass rounded-2xl p-6">
                     <h2 class="text-xl font-bold mb-4">Create Post</h2>
                     <textarea id="post-content" placeholder="What's on your mind?" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white mb-3 h-24"></textarea>
                     <button id="create-post-btn" class="w-full btn-primary text-white p-3 rounded-lg font-semibold">Post</button>
                 </div>
-
-                <!-- Posts Feed -->
                 <div id="posts-feed" class="space-y-4"></div>
             </div>
         </main>
@@ -95,7 +89,6 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-        // ITO NA YUNG CONFIG MO WENGGAY - NAKA-LAGAY NA
         const firebaseConfig = {
             apiKey: "AIzaSyCeHwDLfwsAwXh6Wf0fwCw-nwSLSmPj_qI",
             authDomain: "rowena-portfolio.firebaseapp.com",
@@ -109,7 +102,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // DOM Elements
         const authScreen = document.getElementById('auth-screen');
         const mainApp = document.getElementById('main-app');
         const loginForm = document.getElementById('login-form');
@@ -136,7 +128,6 @@
         let currentUser = null;
         let userData = null;
 
-        // Auth State
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -151,7 +142,6 @@
             }
         });
 
-        // Toggle Forms
         showSignup.onclick = () => {
             loginForm.classList.add('hidden');
             signupForm.classList.remove('hidden');
@@ -161,31 +151,26 @@
             loginForm.classList.remove('hidden');
         };
 
-        // Sign Up
         signupBtn.onclick = async () => {
             const name = document.getElementById('signup-name').value;
             const email = document.getElementById('signup-email').value;
             const password = document.getElementById('signup-password').value;
+            if (!name ||!email ||!password) return alert('Fill all fields');
             try {
                 const userCred = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCred.user, { displayName: name });
                 await setDoc(doc(db, 'users', userCred.user.uid), {
-                    name: name,
-                    email: email,
-                    bio: '',
-                    level: 1,
-                    posts: 0,
-                    createdAt: serverTimestamp()
+                    name: name, email: email, bio: '', level: 1, posts: 0, createdAt: serverTimestamp()
                 });
             } catch (error) {
                 alert('Signup failed: ' + error.message);
             }
         };
 
-        // Login
         loginBtn.onclick = async () => {
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
+            if (!email ||!password) return alert('Fill all fields');
             try {
                 await signInWithEmailAndPassword(auth, email, password);
             } catch (error) {
@@ -193,10 +178,8 @@
             }
         };
 
-        // Logout
         logoutBtn.onclick = () => signOut(auth);
 
-        // Load User Data
         async function loadUserData() {
             const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
             if (userDoc.exists()) {
@@ -211,7 +194,6 @@
             }
         }
 
-        // Edit Bio
         editBioBtn.onclick = () => {
             bioInput.value = userData.bio || '';
             bioInput.classList.remove('hidden');
@@ -231,22 +213,16 @@
             profileBio.classList.remove('hidden');
         };
 
-        // Create Post
         createPostBtn.onclick = async () => {
             const content = postContent.value.trim();
             if (!content) return;
             try {
                 await addDoc(collection(db, 'posts'), {
-                    content: content,
-                    authorId: currentUser.uid,
-                    authorName: userData.name,
-                    likes: [],
-                    comments: [],
-                    createdAt: serverTimestamp()
+                    content: content, authorId: currentUser.uid, authorName: userData.name,
+                    likes: [], comments: [], createdAt: serverTimestamp()
                 });
                 await updateDoc(doc(db, 'users', currentUser.uid), {
-                    posts: increment(1),
-                    level: Math.floor((userData.posts + 1) / 5) + 1
+                    posts: increment(1), level: Math.floor((userData.posts + 1) / 5) + 1
                 });
                 postContent.value = '';
                 await loadUserData();
@@ -255,7 +231,6 @@
             }
         };
 
-        // Load Posts
         function loadPosts() {
             const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
             onSnapshot(q, (snapshot) => {
@@ -295,7 +270,6 @@
                     `;
                     postsFeed.appendChild(postEl);
 
-                    // Load comments
                     const commentsList = postEl.querySelector('.comments-list');
                     if (post.comments?.length > 0) {
                         post.comments.forEach(comment => {
@@ -309,21 +283,16 @@
             });
         }
 
-        // Event Delegation for Like/Comment/Delete
         postsFeed.addEventListener('click', async (e) => {
             const target = e.target.closest('button');
             if (!target) return;
-
             const postId = target.dataset.id;
             if (!postId) return;
 
-            // Like Button
             if (target.classList.contains('like-btn')) {
                 const postRef = doc(db, 'posts', postId);
                 const postDoc = await getDoc(postRef);
-                const postData = postDoc.data();
-                const likes = postData.likes || [];
-                
+                const likes = postDoc.data().likes || [];
                 if (likes.includes(currentUser.uid)) {
                     await updateDoc(postRef, { likes: arrayRemove(currentUser.uid) });
                 } else {
@@ -331,41 +300,28 @@
                 }
             }
 
-            // Comment Button
             if (target.classList.contains('comment-btn')) {
-                const commentsSection = document.getElementById(`comments-${postId}`);
-                commentsSection.classList.toggle('hidden');
+                document.getElementById(`comments-${postId}`).classList.toggle('hidden');
             }
 
-            // Send Comment
             if (target.classList.contains('send-comment')) {
                 const commentInput = target.previousElementSibling;
                 const text = commentInput.value.trim();
                 if (!text) return;
-                
-                const postRef = doc(db, 'posts', postId);
-                await updateDoc(postRef, {
-                    comments: arrayUnion({
-                        text: text,
-                        authorId: currentUser.uid,
-                        authorName: userData.name,
-                        createdAt: new Date()
-                    })
+                await updateDoc(doc(db, 'posts', postId), {
+                    comments: arrayUnion({ text: text, authorId: currentUser.uid, authorName: userData.name, createdAt: new Date() })
                 });
                 commentInput.value = '';
             }
 
-            // Delete Post
             if (target.classList.contains('delete-post')) {
                 if (confirm('Delete this post?')) {
                     await deleteDoc(doc(db, 'posts', postId));
-                    await updateDoc(doc(db, 'users', currentUser.uid), {
-                        posts: increment(-1)
-                    });
+                    await updateDoc(doc(db, 'users', currentUser.uid), { posts: increment(-1) });
                     await loadUserData();
                 }
             }
         });
     </script>
 </body>
-</html>
+    </html>
