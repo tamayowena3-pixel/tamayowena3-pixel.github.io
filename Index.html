@@ -3,68 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Firebase Auth + Firestore</title>
+  <title>Firebase App</title>
   <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      background: #1a1a2e; 
-      color: #fff; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      min-height: 100vh; 
-      margin: 0; 
-      padding: 20px; 
+    body {
+      font-family: Arial, sans-serif;
+      background: #1a1a2e;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
     }
-    .container { 
-      background: #16213e; 
-      padding: 30px; 
-      border-radius: 15px; 
-      width: 100%; 
-      max-width: 400px; 
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+  .container {
+      background: #16213e;
+      padding: 30px;
+      border-radius: 15px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
-    h1 { 
-      text-align: center; 
-      color: #0f4c75; 
-      margin-bottom: 20px; 
+    h1 {
+      text-align: center;
+      color: #0f4c75;
+      margin-bottom: 20px;
     }
-    input, textarea { 
-      width: 100%; 
-      padding: 12px; 
-      margin: 8px 0; 
-      border: none; 
-      border-radius: 8px; 
-      background: #0f3460; 
-      color: #fff; 
-      box-sizing: border-box; 
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 8px;
+      background: #0f3460;
+      color: #fff;
+      box-sizing: border-box;
       font-size: 16px;
       font-family: Arial, sans-serif;
     }
-    button { 
-      width: 100%; 
-      padding: 12px; 
-      margin: 8px 0; 
-      border: none; 
-      border-radius: 8px; 
-      background: #e94560; 
-      color: #fff; 
-      font-weight: bold; 
-      cursor: pointer; 
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 8px;
+      background: #e94560;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
       font-size: 16px;
     }
     button:hover { background: #c73e54; }
     button:disabled { background: #555; cursor: not-allowed; }
-    #messageDiv { 
-      padding: 10px; 
-      margin: 10px 0; 
-      border-radius: 8px; 
-      text-align: center; 
-      display: none; 
+    #messageDiv {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      text-align: center;
+      display: none;
       font-weight: bold;
     }
-    .success { background: #00b894; }
-    .error { background: #d63031; }
+  .success { background: #00b894; }
+  .error { background: #d63031; }
     #dashboard, #editForm { display: none; }
     #logoutBtn { background: #636e72; }
     #logoutBtn:hover { background: #4a5255; }
@@ -73,19 +73,34 @@
     #saveBtn { background: #0984e3; }
     #saveBtn:hover { background: #0870c0; }
     #cancelBtn { background: #636e72; }
-    .profile-info { 
-      background: #0f3460; 
-      padding: 15px; 
-      border-radius: 8px; 
-      margin: 15px 0; 
+    #uploadBtn { background: #6c5ce7; }
+    #uploadBtn:hover { background: #5a4fcf; }
+  .profile-info {
+      background: #0f3460;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
       line-height: 1.8;
+      text-align: center;
+    }
+  .profile-pic {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #e94560;
+      margin: 0 auto 15px;
+      display: block;
+    }
+  .file-input {
+      display: none;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>🔥 Firebase App</h1>
-    
+
     <!-- AUTH FORM -->
     <div id="authForm">
       <input type="email" id="emailInput" placeholder="Email" autocomplete="email">
@@ -100,6 +115,8 @@
     <div id="dashboard">
       <h2>Welcome!</h2>
       <div class="profile-info" id="profileInfo"></div>
+      <input type="file" id="fileInput" class="file-input" accept="image/*">
+      <button id="uploadBtn">Upload Profile Picture</button>
       <button id="editBtn">Edit Profile</button>
       <button id="logoutBtn">Logout</button>
     </div>
@@ -148,6 +165,8 @@
     const editBtn = document.getElementById('editBtn');
     const saveBtn = document.getElementById('saveBtn');
     const cancelBtn = document.getElementById('cancelBtn');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('fileInput');
     const messageDiv = document.getElementById('messageDiv');
     const authForm = document.getElementById('authForm');
     const dashboard = document.getElementById('dashboard');
@@ -163,8 +182,8 @@
       messageDiv.textContent = text;
       messageDiv.className = type;
       messageDiv.style.display = 'block';
-      setTimeout(() => { 
-        messageDiv.style.display = 'none'; 
+      setTimeout(() => {
+        messageDiv.style.display = 'none';
       }, 4000);
     }
 
@@ -173,7 +192,10 @@
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
         currentUserData = userDoc.data();
+        const profilePic = currentUserData.photoBase64 || 'https://via.placeholder.com/100/0f3460/ffffff?text=' + currentUserData.name.charAt(0);
+
         profileInfo.innerHTML = `
+          <img src="${profilePic}" alt="Profile" class="profile-pic">
           <strong>Name:</strong> ${currentUserData.name}<br>
           <strong>Email:</strong> ${currentUserData.email}<br>
           <strong>Bio:</strong> ${currentUserData.bio}<br>
@@ -187,13 +209,13 @@
     signUpBtn.addEventListener('click', async (e) => {
       e.preventDefault();
       signUpBtn.disabled = true;
-      
+
       const email = emailInput.value.trim();
       const password = passwordInput.value;
       const name = nameInput.value.trim();
       const bio = bioInput.value.trim();
 
-      if (!email || !password) {
+      if (!email ||!password) {
         showMessage('Please fill email and password', 'error');
         signUpBtn.disabled = false;
         return;
@@ -208,13 +230,14 @@
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        
+
         await setDoc(doc(db, "users", user.uid), {
           email: user.email,
           name: name || "Anonymous",
           bio: bio || "New user",
           level: "Beginner",
-          joinDate: new Date().toISOString()
+          joinDate: new Date().toISOString(),
+          photoBase64: null
         });
 
         showMessage('Account created + Data saved!', 'success');
@@ -233,11 +256,11 @@
     loginBtn.addEventListener('click', async (e) => {
       e.preventDefault();
       loginBtn.disabled = true;
-      
+
       const email = emailInput.value.trim();
       const password = passwordInput.value;
 
-      if (!email || !password) {
+      if (!email ||!password) {
         showMessage('Please fill email and password', 'error');
         loginBtn.disabled = false;
         return;
@@ -259,6 +282,46 @@
       showMessage('Logged out', 'success');
     });
 
+    // UPLOAD BUTTON
+    uploadBtn.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    // FILE INPUT CHANGE - CONVERT TO BASE64
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 900000) {
+        showMessage('Image too large. Max 900KB', 'error');
+        return;
+      }
+
+      uploadBtn.disabled = true;
+      showMessage('Uploading...', 'success');
+
+      try {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          const base64String = event.target.result;
+          const user = auth.currentUser;
+
+          await updateDoc(doc(db, "users", user.uid), {
+            photoBase64: base64String
+          });
+
+          showMessage('Profile picture updated!', 'success');
+          await loadProfile(user);
+          uploadBtn.disabled = false;
+          fileInput.value = '';
+        };
+        reader.readAsDataURL(file);
+      } catch (error) {
+        showMessage(error.message, 'error');
+        uploadBtn.disabled = false;
+      }
+    });
+
     // EDIT BUTTON
     editBtn.addEventListener('click', () => {
       dashboard.style.display = 'none';
@@ -273,7 +336,7 @@
       dashboard.style.display = 'block';
     });
 
-    // SAVE BUTTON - UPDATE SA FIRESTORE
+    // SAVE BUTTON
     saveBtn.addEventListener('click', async (e) => {
       e.preventDefault();
       saveBtn.disabled = true;
@@ -296,7 +359,7 @@
 
         showMessage('Profile updated!', 'success');
         await loadProfile(user);
-        
+
         editForm.style.display = 'none';
         dashboard.style.display = 'block';
       } catch (error) {
