@@ -206,82 +206,75 @@
     }
 
     // SIGN UP FUNCTION
-    signUpBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      signUpBtn.disabled = true;
+          // SAVE BUTTON - WITH AUTO LEVEL UP
+saveBtn.addEventListener('click', async (e) => {
+  e.preventDefault();
+  saveBtn.disabled = true;
 
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-      const name = nameInput.value.trim();
-      const bio = bioInput.value.trim();
+  const newName = editNameInput.value.trim();
+  const newBio = editBioInput.value.trim();
 
-      if (!email ||!password) {
-        showMessage('Please fill email and password', 'error');
-        signUpBtn.disabled = false;
-        return;
-      }
+  if (!newName) {
+    showMessage('Name cannot be empty', 'error');
+    saveBtn.disabled = false;
+    return;
+  }
 
-      if (password.length < 6) {
-        showMessage('Password must be 6+ characters', 'error');
-        signUpBtn.disabled = false;
-        return;
-      }
+  try {
+    const user = auth.currentUser;
+    const userRef = doc(db, "users", user.uid);
+    
+    // Get current edit count
+    const currentEditCount = currentUserData.editCount || 0;
+    const newEditCount = currentEditCount + 1;
+    
+    // Calculate new level
+    let newLevel = "Beginner";
+    if (newEditCount >= 10) {
+      newLevel = "Expert";
+    } else if (newEditCount >= 3) {
+      newLevel = "Intermediate";
+    }
 
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-
-        await setDoc(doc(db, "users", user.uid), {
-          email: user.email,
-          name: name || "Anonymous",
-          bio: bio || "New user",
-          level: "Beginner",
-          joinDate: new Date().toISOString(),
-          photoBase64: null
-        });
-
-        showMessage('Account created + Data saved!', 'success');
-        emailInput.value = '';
-        passwordInput.value = '';
-        nameInput.value = '';
-        bioInput.value = '';
-      } catch (error) {
-        showMessage(error.message, 'error');
-      } finally {
-        signUpBtn.disabled = false;
-      }
+    // Update Firestore
+    await updateDoc(userRef, {
+      name: newName,
+      bio: newBio,
+      editCount: newEditCount,
+      level: newLevel
     });
 
-    // LOGIN FUNCTION
-    loginBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      loginBtn.disabled = true;
+    // Show message with level up
+    if (newLevel !== currentUserData.level) {
+      showMessage(`Profile updated! You leveled up to ${newLevel}! 🎉`, 'success');
+    } else {
+      showMessage('Profile updated!', 'success');
+    }
 
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-
-      if (!email ||!password) {
-        showMessage('Please fill email and password', 'error');
-        loginBtn.disabled = false;
-        return;
-      }
-
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        showMessage('Logged in successfully!', 'success');
-      } catch (error) {
-        showMessage(error.message, 'error');
-      } finally {
-        loginBtn.disabled = false;
+    await loadProfile(user);
+    
+    editForm.style.display = 'none';
+    dashboard.style.display = 'block';
+  } catch (error) {
+    showMessage(error.message, 'error');
+  } finally {
+    saveBtn.disabled = false;
+  }
+});;
       }
     });
 
     // LOGOUT FUNCTION
     logoutBtn.addEventListener('click', async () => {
-      await signOut(auth);
-      showMessage('Logged out', 'success');
-    });
-
+      await setDoc(doc(db, "users", user.uid), {
+  email: user.email,
+  name: name || "Anonymous",
+  bio: bio || "New user",
+  level: "Beginner",
+  joinDate: new Date().toISOString(),
+  photoBase64: null,
+  editCount: 0
+});
     // UPLOAD BUTTON
     uploadBtn.addEventListener('click', () => {
       fileInput.click();
