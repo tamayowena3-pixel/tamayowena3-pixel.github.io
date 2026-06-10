@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rowena's Todo List - Day 10</title>
+    <style>
+        * {margin: 0; padding: 0; box-sizing: border-box;}
+        body {
+            background: #0a0a0a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            min-height: 100vh;
+        }
+       .container {
+            max-width: 500px;
+            margin: 0 auto;
+            border: 2px solid #00ff00;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 0 20px #00ff00;
+            background: #111;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #00ff00;
+        }
+       .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #taskInput {
+            flex: 1;
+            background: #000;
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            color: #00ff00;
+            padding: 12px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+        }
+        #addBtn {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+        }
+        #addBtn:hover {
+            box-shadow: 0 0 15px #00ff00;
+        }
+        ul {
+            list-style: none;
+        }
+        li {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        li.completed {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+       .task-text {
+            flex: 1;
+            cursor: pointer;
+        }
+       .delete-btn {
+            background: #330000;
+            border: 1px solid #ff0000;
+            color: #ff0000;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+        }
+       .delete-btn:hover {
+            background: #ff0000;
+            color: #000;
+        }
+       .stats {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+       .back {
+            margin-top: 20px;
+            text-align: center;
+        }
+       .back a {
+            color: #00ff00;
+            text-decoration: none;
+            border: 1px solid #00ff00;
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Rowena's Tasks 📝</h1>
+        <div class="input-area">
+            <input type="text" id="taskInput" placeholder="Add new task...">
+            <button id="addBtn" onclick="addTask()">Add</button>
+        </div>
+        <ul id="taskList"></ul>
+        <div class="stats">
+            <span id="taskCount">0 tasks</span>
+        </div>
+        <div class="back">
+            <a href="index.html">← Back to Portfolio</a>
+        </div>
+    </div>
+
+    <script>
+        let tasks = JSON.parse(localStorage.getItem('rowenaTasks')) || [];
+
+        function saveTasks() {
+            localStorage.setItem('rowenaTasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+            if (text) {
+                tasks.push({ text: text, completed: false });
+                input.value = '';
+                saveTasks();
+            }
+        }
+
+        function toggleTask(index) {
+            tasks[index].completed =!tasks[index].completed;
+            saveTasks();
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            saveTasks();
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                if (task.completed) li.classList.add('completed');
+                li.innerHTML = `
+                    <span class="task-text" onclick="toggleTask(${index})">${task.text}</span>
+                    <button class="delete-btn" onclick="deleteTask(${index})">Delete</button>
+                `;
+                list.appendChild(li);
+            });
+            document.getElementById('taskCount').textContent =
+                `${tasks.length} tasks | ${tasks.filter(t => t.completed).length} done`;
+        }
+
+        document.getElementById('taskInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addTask();
+        });
+
+        renderTasks();
+    </script>
+</body>
+</html>
