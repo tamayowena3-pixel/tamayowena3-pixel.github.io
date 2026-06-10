@@ -73,7 +73,7 @@
   <div class="container">
     <h1>🔥 Firebase App</h1>
     
-    
+    <!-- AUTH FORM -->
     <div id="authForm">
       <input type="email" id="emailInput" placeholder="Email" autocomplete="email">
       <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password">
@@ -83,7 +83,7 @@
       <button id="loginBtn">Login</button>
     </div>
 
-    
+    <!-- DASHBOARD -->
     <div id="dashboard">
       <h2>Welcome!</h2>
       <p>Logged in as: <span id="userEmailSpan"></span></p>
@@ -94,35 +94,27 @@
   </div>
 
   <script type="module">
-    
+    // IMPORT FIREBASE SDK
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-    
-    // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+    // ⚠️ WENA PALITAN MO TO NG SARILI MONG CONFIG GALING FIREBASE ⚠️
+    const firebaseConfig = {
+      apiKey: "AIzaSyCeHwDLfwsAwXh6Wf0fw",
+      authDomain: "your-project.firebaseapp.com",
+      projectId: "your-project",
+      storageBucket: "your-project.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "1:123456789:web:abcdef123456"
+    };
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyCeHwDLfwsAwXh6Wf0fwCw-nwSLSmPj_qI",
-  authDomain: "rowena-portfolio.firebaseapp.com",
-  projectId: "rowena-portfolio",
-  storageBucket: "rowena-portfolio.firebasestorage.app",
-  messagingSenderId: "352213537262",
-  appId: "1:352213537262:web:b58a90d30c1f5fa78f7eff"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-    
+    // INITIALIZE FIREBASE
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    
+    // GET ALL ELEMENTS - FIXED NA LAHAT NG ID
     const emailInput = document.getElementById('emailInput');
     const passwordInput = document.getElementById('passwordInput');
     const nameInput = document.getElementById('nameInput');
@@ -135,7 +127,7 @@ const app = initializeApp(firebaseConfig);
     const dashboard = document.getElementById('dashboard');
     const userEmailSpan = document.getElementById('userEmailSpan');
 
-    
+    // SHOW MESSAGE FUNCTION
     function showMessage(text, type) {
       messageDiv.textContent = text;
       messageDiv.className = type;
@@ -145,7 +137,7 @@ const app = initializeApp(firebaseConfig);
       }, 5000);
     }
 
-    
+    // SIGN UP FUNCTION - WALA NANG BUG
     signUpBtn.addEventListener('click', async (e) => {
       e.preventDefault();
       signUpBtn.disabled = true;
@@ -162,76 +154,4 @@ const app = initializeApp(firebaseConfig);
       }
 
       if (password.length < 6) {
-        showMessage('Password must be 6+ characters', 'error');
-        signUpBtn.disabled = false;
-        return;
-      }
-
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        
-        await setDoc(doc(db, "users", user.uid), {
-          email: user.email,
-          name: name || "Anonymous",
-          bio: bio || "New user",
-          level: "Beginner",
-          joinDate: new Date().toISOString()
-        });
-
-        showMessage('Account created + Data saved!', 'success');
-        emailInput.value = '';
-        passwordInput.value = '';
-        nameInput.value = '';
-        bioInput.value = '';
-      } catch (error) {
-        showMessage(error.message, 'error');
-      } finally {
-        signUpBtn.disabled = false;
-      }
-    });
-
-    
-    loginBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      loginBtn.disabled = true;
-      
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-
-      if (!email || !password) {
-        showMessage('Please fill email and password', 'error');
-        loginBtn.disabled = false;
-        return;
-      }
-
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        showMessage('Logged in successfully!', 'success');
-      } catch (error) {
-        showMessage(error.message, 'error');
-      } finally {
-        loginBtn.disabled = false;
-      }
-    });
-
-  
-    logoutBtn.addEventListener('click', async () => {
-      await signOut(auth);
-      showMessage('Logged out', 'success');
-    });
-
-    
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        authForm.style.display = 'none';
-        dashboard.style.display = 'block';
-        userEmailSpan.textContent = user.email;
-      } else {
-        authForm.style.display = 'block';
-        dashboard.style.display = 'none';
-      }
-    });
-  </script>
-</body>
-</html>
+        showMessage('Pass
