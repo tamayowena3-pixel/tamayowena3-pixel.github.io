@@ -16,7 +16,7 @@
       margin: 0;
       padding: 20px;
     }
-    .container {
+   .container {
       background: #16213e;
       padding: 30px;
       border-radius: 15px;
@@ -71,8 +71,8 @@
       position: relative;
       z-index: 3;
     }
-    .success { background: #00b894; }
-    .error { background: #d63031; }
+   .success { background: #00b894; }
+   .error { background: #d63031; }
     #dashboard, #editForm { display: none; }
     #logoutBtn { background: #636e72; }
     #logoutBtn:hover { background: #4a5255; }
@@ -89,7 +89,7 @@
     #feedBtn:hover { background: #0870c0; }
     #profileBtn { background: #6c5ce7; }
     #profileBtn:hover { background: #5a4fcf; }
-    .profile-info {
+   .profile-info {
       background: #0f3460;
       padding: 15px;
       border-radius: 8px;
@@ -97,7 +97,7 @@
       line-height: 1.8;
       text-align: center;
     }
-    .profile-pic {
+   .profile-pic {
       width: 100px;
       height: 100px;
       border-radius: 50%;
@@ -106,22 +106,22 @@
       margin: 0 auto 15px;
       display: block;
     }
-    .file-input {
+   .file-input {
       display: none;
     }
-    .post {
+   .post {
       background: #0f3460;
       padding: 15px;
       border-radius: 8px;
       margin: 15px 0;
       text-align: left;
     }
-    .post-header {
+   .post-header {
       display: flex;
       align-items: center;
       margin-bottom: 10px;
     }
-    .post-pic {
+   .post-pic {
       width: 40px;
       height: 40px;
       border-radius: 50%;
@@ -129,41 +129,121 @@
       margin-right: 10px;
       border: 2px solid #e94560;
     }
-    .post-name {
+   .post-name {
       font-weight: bold;
       color: #00b894;
     }
-    .post-time {
+   .post-time {
       font-size: 12px;
       color: #999;
     }
-    .post-content {
+   .post-content {
       margin: 10px 0;
       line-height: 1.5;
       word-wrap: break-word;
     }
-    .delete-post-btn {
-      background: #d63031;
-      padding: 5px 10px;
-      font-size: 12px;
-      width: auto;
-      margin-top: 5px;
+   .post-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      border-top: 1px solid #1a1a2e;
+      padding-top: 10px;
     }
-    .delete-post-btn:hover { background: #b02324; }
-    .nav-buttons {
+   .action-btn {
+      background: transparent;
+      border: 1px solid #e94560;
+      color: #e94560;
+      padding: 6px 12px;
+      font-size: 14px;
+      width: auto;
+      margin: 0;
+      flex: 1;
+    }
+   .action-btn:hover {
+      background: #e94560;
+      color: #fff;
+    }
+   .action-btn.liked {
+      background: #e94560;
+      color: #fff;
+    }
+   .delete-post-btn {
+      background: #d63031;
+      padding: 6px 12px;
+      font-size: 14px;
+      width: auto;
+      margin: 0;
+    }
+   .delete-post-btn:hover { background: #b02324; }
+   .nav-buttons {
       display: flex;
       gap: 10px;
       margin-bottom: 15px;
     }
-    .nav-buttons button {
+   .nav-buttons button {
       flex: 1;
       margin: 0;
     }
     #globalFeed, #myPosts { display: none; }
-    .section-title {
+   .section-title {
       text-align: center;
       margin: 20px 0 10px;
       color: #00b894;
+    }
+   .comments-section {
+      margin-top: 10px;
+      display: none;
+    }
+   .comment {
+      background: #1a1a2e;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+   .comment-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+   .comment-pic {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 8px;
+    }
+   .comment-name {
+      font-weight: bold;
+      color: #00b894;
+      font-size: 13px;
+    }
+   .comment-time {
+      font-size: 11px;
+      color: #999;
+      margin-left: auto;
+    }
+   .comment-text {
+      margin-left: 33px;
+      word-wrap: break-word;
+    }
+   .comment-input-box {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+   .comment-input {
+      flex: 1;
+      margin: 0;
+      padding: 8px;
+      font-size: 14px;
+    }
+   .comment-btn {
+      width: auto;
+      padding: 8px 12px;
+      margin: 0;
+      font-size: 14px;
+      background: #00b894;
     }
   </style>
 </head>
@@ -196,11 +276,11 @@
         <input type="file" id="fileInput" class="file-input" accept="image/*">
         <button id="uploadBtn">Upload Profile Picture</button>
         <button id="editBtn">Edit Profile</button>
-        
+
         <h3 class="section-title">Create Post</h3>
         <textarea id="postInput" placeholder="What's on your mind?" rows="3"></textarea>
         <button id="postBtn">Post</button>
-        
+
         <h3 class="section-title">Your Posts</h3>
         <div id="myPosts"></div>
       </div>
@@ -227,7 +307,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, query, orderBy, getDocs, deleteDoc, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, query, orderBy, getDocs, deleteDoc, where, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCeHwDLfwsAwXh6Wf0fwCw-nwSLSmPj_qI",
@@ -297,16 +377,16 @@
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           currentUserData = userDoc.data();
-          
+
           if (currentUserData.editCount === undefined) currentUserData.editCount = 0;
           if (currentUserData.level === undefined) currentUserData.level = "Beginner";
-          
+
           let levelEmoji = "🌱";
           if (currentUserData.level === "Intermediate") levelEmoji = "🔥";
           if (currentUserData.level === "Expert") levelEmoji = "⚡";
           if (currentUserData.level === "Master") levelEmoji = "🥷";
           if (currentUserData.level === "Legend") levelEmoji = "👑";
-          
+
           const profilePic = currentUserData.photoBase64 || 'https://via.placeholder.com/100/0f3460/ffffff?text=' + currentUserData.name.charAt(0);
 
           profileInfo.innerHTML = `
@@ -318,7 +398,7 @@
             <strong>Edits:</strong> ${currentUserData.editCount}<br>
             <strong>Joined:</strong> ${new Date(currentUserData.joinDate).toLocaleDateString()}
           `;
-          
+
           await loadMyPosts(user.uid);
         }
       } catch (error) {
@@ -335,18 +415,18 @@
           orderBy("createdAt", "desc")
         );
         const querySnapshot = await getDocs(q);
-        
+
         myPosts.innerHTML = '';
         if (querySnapshot.empty) {
           myPosts.innerHTML = '<p style="text-align:center;color:#999;">No posts yet. Create one!</p>';
           return;
         }
-        
-        querySnapshot.forEach((doc) => {
-          const post = doc.data();
-          const postElement = createPostElement(doc.id, post, true);
+
+        for (const docSnap of querySnapshot.docs) {
+          const post = docSnap.data();
+          const postElement = await createPostElement(docSnap.id, post, true);
           myPosts.appendChild(postElement);
-        });
+        }
       } catch (error) {
         console.log(error);
       }
@@ -359,32 +439,45 @@
           orderBy("createdAt", "desc")
         );
         const querySnapshot = await getDocs(q);
-        
+
         feedPosts.innerHTML = '';
         if (querySnapshot.empty) {
           feedPosts.innerHTML = '<p style="text-align:center;color:#999;">No posts yet. Be the first!</p>';
           return;
         }
-        
-        querySnapshot.forEach((doc) => {
-          const post = doc.data();
+
+        for (const docSnap of querySnapshot.docs) {
+          const post = docSnap.data();
           const isMyPost = auth.currentUser && post.userId === auth.currentUser.uid;
-          const postElement = createPostElement(doc.id, post, isMyPost);
+          const postElement = await createPostElement(docSnap.id, post, isMyPost);
           feedPosts.appendChild(postElement);
-        });
+        }
       } catch (error) {
         console.log(error);
         showMessage('Error loading feed', 'error');
       }
     }
 
-    function createPostElement(postId, post, canDelete) {
+    async function getComments(postId) {
+      const q = query(
+        collection(db, "posts", postId, "comments"),
+        orderBy("createdAt", "asc")
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
+    }
+
+    async function createPostElement(postId, post, canDelete) {
       const div = document.createElement('div');
       div.className = 'post';
-      
+
       const userPic = post.userPhoto || 'https://via.placeholder.com/40/0f3460/ffffff?text=' + post.userName.charAt(0);
-      const postDate = post.createdAt ? new Date(post.createdAt) : new Date();
-      
+      const postDate = post.createdAt? new Date(post.createdAt) : new Date();
+      const currentUserId = auth.currentUser? auth.currentUser.uid : null;
+      const likes = post.likes || [];
+      const likedByUser = currentUserId && likes.includes(currentUserId);
+      const comments = await getComments(postId);
+
       div.innerHTML = `
         <div class="post-header">
           <img src="${userPic}" alt="User" class="post-pic">
@@ -392,10 +485,82 @@
             <div class="post-name">${post.userName}</div>
             <div class="post-time">${timeAgo(postDate)}</div>
           </div>
+        </div>
         <div class="post-content">${post.content}</div>
-        ${canDelete ? `<button class="delete-post-btn" data-id="${postId}">Delete</button>` : ''}
+        <div class="post-actions">
+          <button class="action-btn like-btn ${likedByUser? 'liked' : ''}" data-id="${postId}">
+            ❤️ ${likes.length}
+          </button>
+          <button class="action-btn comment-toggle-btn" data-id="${postId}">
+            💬 ${comments.length}
+          </button>
+          ${canDelete? `<button class="delete-post-btn" data-id="${postId}">Delete</button>` : ''}
+        </div>
+        <div class="comments-section" id="comments-${postId}">
+          <div class="comments-list"></div>
+          <div class="comment-input-box">
+            <input type="text" class="comment-input" placeholder="Write a comment..." data-id="${postId}">
+            <button class="comment-btn" data-id="${postId}">Send</button>
+          </div>
+        </div>
       `;
-      
+
+      // Like button
+      div.querySelector('.like-btn').addEventListener('click', async () => {
+        if (!currentUserId) return;
+        const postRef = doc(db, "posts", postId);
+        if (likedByUser) {
+          await updateDoc(postRef, { likes: arrayRemove(currentUserId) });
+        } else {
+          await updateDoc(postRef, { likes: arrayUnion(currentUserId) });
+        }
+        await loadGlobalFeed();
+        await loadMyPosts(auth.currentUser.uid);
+      });
+
+      // Comment toggle
+      div.querySelector('.comment-toggle-btn').addEventListener('click', () => {
+        const commentsSection = div.querySelector(`#comments-${postId}`);
+        commentsSection.style.display = commentsSection.style.display === 'none'? 'block' : 'none';
+      });
+
+      // Load comments
+      const commentsList = div.querySelector('.comments-list');
+      comments.forEach(comment => {
+        const commentPic = comment.userPhoto || 'https://via.placeholder.com/25/0f3460/ffffff?text=' + comment.userName.charAt(0);
+        const commentDate = comment.createdAt? new Date(comment.createdAt) : new Date();
+        commentsList.innerHTML += `
+          <div class="comment">
+            <div class="comment-header">
+              <img src="${commentPic}" alt="User" class="comment-pic">
+              <span class="comment-name">${comment.userName}</span>
+              <span class="comment-time">${timeAgo(commentDate)}</span>
+            </div>
+            <div class="comment-text">${comment.content}</div>
+          </div>
+        `;
+      });
+
+      // Add comment
+      div.querySelector('.comment-btn').addEventListener('click', async () => {
+        const input = div.querySelector('.comment-input');
+        const content = input.value.trim();
+        if (!content) return;
+
+        await addDoc(collection(db, "posts", postId, "comments"), {
+          userId: currentUserId,
+          userName: currentUserData.name,
+          userPhoto: currentUserData.photoBase64,
+          content: content,
+          createdAt: new Date().toISOString()
+        });
+
+        input.value = '';
+        await loadGlobalFeed();
+        await loadMyPosts(auth.currentUser.uid);
+      });
+
+      // Delete post
       if (canDelete) {
         div.querySelector('.delete-post-btn').addEventListener('click', async () => {
           if (confirm('Delete this post?')) {
@@ -406,7 +571,7 @@
           }
         });
       }
-      
+
       return div;
     }
 
@@ -417,7 +582,7 @@
       const name = nameInput.value.trim();
       const bio = bioInput.value.trim();
 
-      if (!email || !password) {
+      if (!email ||!password) {
         showMessage('Please fill email and password', 'error');
         return;
       }
@@ -456,180 +621,5 @@
       const email = emailInput.value.trim();
       const password = passwordInput.value;
 
-      if (!email || !password) {
-        showMessage('Please fill email and password', 'error');
-        return;
-      }
-
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        showMessage('Logged in successfully!', 'success');
-      } catch (error) {
-        showMessage(error.message, 'error');
-      }
-    });
-
-    logoutBtn.addEventListener('click', async () => {
-      await signOut(auth);
-      showMessage('Logged out', 'success');
-    });
-
-    uploadBtn.addEventListener('click', () => {
-      fileInput.click();
-    });
-
-    fileInput.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      if (file.size > 900000) {
-        showMessage('Image too large. Max 900KB', 'error');
-        return;
-      }
-
-      showMessage('Uploading...', 'success');
-
-      try {
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-          const base64String = event.target.result;
-          const user = auth.currentUser;
-
-          await updateDoc(doc(db, "users", user.uid), {
-            photoBase64: base64String
-          });
-
-          showMessage('Profile picture updated!', 'success');
-          await loadProfile(user);
-          fileInput.value = '';
-        };
-        reader.readAsDataURL(file);
-      } catch (error) {
-        showMessage(error.message, 'error');
-      }
-    });
-
-    editBtn.addEventListener('click', () => {
-      dashboard.style.display = 'none';
-      editForm.style.display = 'block';
-      editNameInput.value = currentUserData.name;
-      editBioInput.value = currentUserData.bio;
-    });
-
-    cancelBtn.addEventListener('click', () => {
-      editForm.style.display = 'none';
-      dashboard.style.display = 'block';
-    });
-
-    saveBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const newName = editNameInput.value.trim();
-      const newBio = editBioInput.value.trim();
-
-      if (!newName) {
-        showMessage('Name cannot be empty', 'error');
-        return;
-      }
-
-      try {
-        const user = auth.currentUser;
-        const userRef = doc(db, "users", user.uid);
-        
-        const currentEditCount = currentUserData.editCount || 0;
-        const newEditCount = currentEditCount + 1;
-        
-        let newLevel = "Beginner";
-        let levelEmoji = "🌱";
-        
-        if (newEditCount >= 50) {
-          newLevel = "Legend";
-          levelEmoji = "👑";
-        } else if (newEditCount >= 20) {
-          newLevel = "Master";
-          levelEmoji = "🥷";
-        } else if (newEditCount >= 10) {
-          newLevel = "Expert";
-          levelEmoji = "⚡";
-        } else if (newEditCount >= 3) {
-          newLevel = "Intermediate";
-          levelEmoji = "🔥";
-        }
-
-        await updateDoc(userRef, {
-          name: newName,
-          bio: newBio,
-          editCount: newEditCount,
-          level: newLevel
-        });
-
-        if (newLevel !== currentUserData.level) {
-          showMessage(`${levelEmoji} LEVEL UP! You are now ${newLevel}! 🎉`, 'success');
-        } else {
-          showMessage('Profile updated!', 'success');
-        }
-
-        await loadProfile(user);
-        
-        editForm.style.display = 'none';
-        dashboard.style.display = 'block';
-      } catch (error) {
-        showMessage(error.message, 'error');
-      }
-    });
-
-    postBtn.addEventListener('click', async () => {
-      const content = postInput.value.trim();
-      
-      if (!content) {
-        showMessage('Post cannot be empty', 'error');
-        return;
-      }
-
-      try {
-        const user = auth.currentUser;
-        
-        await addDoc(collection(db, "posts"), {
-          userId: user.uid,
-          userName: currentUserData.name,
-          userPhoto: currentUserData.photoBase64,
-          content: content,
-          createdAt: new Date().toISOString()
-        });
-
-        showMessage('Posted!', 'success');
-        postInput.value = '';
-        await loadMyPosts(user.uid);
-        await loadGlobalFeed();
-      } catch (error) {
-        showMessage(error.message, 'error');
-      }
-    });
-
-    profileBtn.addEventListener('click', () => {
-      profileSection.style.display = 'block';
-      globalFeed.style.display = 'none';
-    });
-
-    feedBtn.addEventListener('click', async () => {
-      profileSection.style.display = 'none';
-      globalFeed.style.display = 'block';
-      await loadGlobalFeed();
-    });
-
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        authForm.style.display = 'none';
-        dashboard.style.display = 'block';
-        editForm.style.display = 'none';
-        profileSection.style.display = 'block';
-        globalFeed.style.display = 'none';
-        await loadProfile(user);
-      } else {
-        authForm.style.display = 'block';
-        dashboard.style.display = 'none';
-        editForm.style.display = 'none';
-      }
-    });
-  </script>
-</body>
-</html>
+      if (!email ||!password) {
+        showMessage('Please fill ema
