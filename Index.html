@@ -100,15 +100,23 @@
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
     
-    const firebaseConfig = {
-      apiKey: "AIzaSyXXXXXXXXXXXXXXXXXXX",
-      authDomain: "your-project.firebaseapp.com",
-      projectId: "your-project",
-      storageBucket: "your-project.appspot.com",
-      messagingSenderId: "123456789",
-      appId: "1:123456789:web:abcdef123456"
-    };
+    // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCeHwDLfwsAwXh6Wf0fwCw-nwSLSmPj_qI",
+  authDomain: "rowena-portfolio.firebaseapp.com",
+  projectId: "rowena-portfolio",
+  storageBucket: "rowena-portfolio.firebasestorage.app",
+  messagingSenderId: "352213537262",
+  appId: "1:352213537262:web:b58a90d30c1f5fa78f7eff"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
     
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
