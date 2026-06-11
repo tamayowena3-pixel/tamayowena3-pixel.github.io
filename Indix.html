@@ -131,7 +131,41 @@
         window.showSignupForm = () => { document.getElementById('login-form').classList.add('hidden'); document.getElementById('signup-form').classList.remove('hidden'); };
         window.showLoginForm = () => { document.getElementById('signup-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); };
         window.handleSignup = async () => { const name = document.getElementById('signup-name').value; const email = document.getElementById('signup-email').value; const password = document.getElementById('signup-password').value; if (!name ||!email ||!password) return alert('Fill all fields'); if (password.length < 6) return alert('Password must be 6+ characters'); try { const userCredential = await createUserWithEmailAndPassword(auth, email, password); await setDoc(doc(db, 'users', userCredential.user.uid), { uid: userCredential.user.uid, name, email, bio: '', photoURL: '', level: 1, posts: 0, followers: [], following: [], createdAt: serverTimestamp() }); alert('Account created! Welcome Wenggay 👑'); } catch (error) { alert('Error: ' + error.message); } };
-        window.handleLogin = async () => { const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; if (!email ||!password) return alert('Enter email and password'); try { await signInWithEmailAndPassword(auth, email, password); } catch (error) { alert('Error: ' + error.message); } };
+        window.handleLogin = async () => {
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    
+    console.log('Email:', email, 'Password:', password); // Debug
+    
+    if (!email || !password) {
+        alert('Enter email and password');
+        return;
+    }
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+};
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    
+    console.log('Email:', email, 'Password:', password); // Debug
+    
+    if (!email || !password) {
+        alert('Enter email and password');
+        return;
+    }
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+};
         window.handleLogout = async () => { await signOut(auth); };
         document.getElementById('post-image')?.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { window.selectedImage = e.target.result; document.getElementById('preview-img').src = window.selectedImage; document.getElementById('image-preview').classList.remove('hidden'); }; reader.readAsDataURL(file); } });
         window.removeSelectedImage = () => { window.selectedImage = null; document.getElementById('post-image').value = ''; document.getElementById('image-preview').classList.add('hidden'); };
