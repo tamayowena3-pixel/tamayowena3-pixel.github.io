@@ -1,23 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My App</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 100px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 18px;
-        }
-    </style>
+<title>Tap Game</title>
+<style>
+body{
+    text-align:center;
+    font-family:Arial;
+    margin-top:50px;
+}
+button{
+    font-size:30px;
+    padding:20px;
+}
+#score{
+    font-size:40px;
+}
+</style>
 </head>
 <body>
-    <h1>Welcome sa App Ko!</h1>
-    <button onclick="alert('Hello World!')">
-        Click Me
-    </button>
+
+<h1>Tap Game</h1>
+<p>Score: <span id="score">0</span></p>
+
+<button onclick="addPoint()">TAP!</button>
+
+<script>
+let score = 0;
+
+function addPoint(){
+    score++;
+    document.getElementById("score").innerText = score;
+}
+</script>
+
 </body>
 </html>
