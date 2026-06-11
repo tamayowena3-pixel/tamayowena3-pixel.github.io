@@ -7,13 +7,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
-     .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        :root { --bg: #0a0a0a; --text: #fff; --glass: rgba(255,255,255,0.05); --border: rgba(255,255,255,0.1); }
+        body.light { --bg: #f5f5f5; --text: #0a0a0a; --glass: rgba(0,0,0,0.05); --border: rgba(0,0,0,0.1); }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); transition: all 0.3s; }
+     .glass { background: var(--glass); backdrop-filter: blur(10px); border: 1px solid var(--border); }
      .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
      .hidden { display: none!important; }
      .like-btn.liked { color: #ef4444; }
-     .comment-box { background: rgba(255,255,255,0.03); }
-        button { cursor: pointer; z-index: 9999; }
+     .comment-like.liked { color: #ef4444; }
+     .comment-box { background: var(--glass); }
+        button { cursor: pointer; z-index: 10; }
+       .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+       .chat-box { height: 400px; overflow-y: auto; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -38,25 +43,33 @@
 
     <div id="main-app" class="hidden">
         <header class="glass sticky top-0 z-50 p-4">
-            <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="max-w-6xl mx-auto flex justify-between items-center gap-4">
                 <h1 class="text-2xl font-bold">Wenggay Social 👑</h1>
-                <div class="flex items-center gap-4">
-                    <div class="text-right">
+                <input id="search-input" type="text" placeholder="Search users..." class="flex-1 max-w-xs p-2 rounded-lg bg-white/10 border border-white/20 text-sm hidden md:block">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-lg bg-white/10 text-xl">🌙</button>
+                    <button onclick="openChatList()" class="p-2 rounded-lg bg-white/10 text-xl relative">💬<span id="chat-badge" class="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span></button>
+                    <div class="text-right hidden md:block">
                         <p id="user-name" class="font-semibold"></p>
                         <p class="text-xs text-gray-400">Level <span id="user-level">1</span></p>
                     </div>
-                    <button onclick="handleLogout()" class="bg-red-500/20 text-red-400 px-4 py-2 rounded-lg">Logout</button>
+                    <button onclick="handleLogout()" class="bg-red-500/20 text-red-400 px-4 py-2 rounded-lg text-sm">Logout</button>
                 </div>
             </div>
         </header>
 
-        <main class="max-w-4xl mx-auto p-4 grid md:grid-cols-3 gap-6">
-            <div class="md:col-span-1">
+        <main class="max-w-6xl mx-auto p-4 grid md:grid-cols-4 gap-6">
+            <div class="md:col-span-1 space-y-4">
                 <div class="glass rounded-2xl p-6">
                     <h2 class="text-xl font-bold mb-4">Profile</h2>
                     <div class="text-center mb-4">
-                        <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl font-bold">
-                            <span id="profile-initial">W</span>
+                        <div class="relative w-24 h-24 mx-auto mb-3">
+                            <img id="profile-pic" src="" class="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full object-cover hidden">
+                            <div id="profile-initial-bg" class="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold">
+                                <span id="profile-initial">W</span>
+                            </div>
+                            <input type="file" id="profile-pic-input" accept="image/*" class="hidden">
+                            <button onclick="document.getElementById('profile-pic-input').click()" class="absolute bottom-0 right-0 bg-purple-500 rounded-full p-1 text-xs">📷</button>
                         </div>
                         <h3 id="profile-name" class="font-semibold text-lg"></h3>
                         <p id="profile-bio" class="text-gray-400 text-sm mt-2">Click edit to add bio</p>
@@ -67,7 +80,13 @@
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between"><span class="text-gray-400">Posts</span><span id="post-count">0</span></div>
                         <div class="flex justify-between"><span class="text-gray-400">Level</span><span id="profile-level">1</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">Followers</span><span id="follower-count">0</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">Following</span><span id="following-count">0</span></div>
                     </div>
+                </div>
+                <div id="search-results" class="glass rounded-2xl p-4 hidden">
+                    <h3 class="font-bold mb-3">Search Results</h3>
+                    <div id="search-list" class="space-y-2"></div>
                 </div>
             </div>
 
@@ -84,13 +103,35 @@
                 </div>
                 <div id="posts-feed" class="space-y-4"></div>
             </div>
+
+            <div class="md:col-span-1 space-y-4 hidden lg:block">
+                <div class="glass rounded-2xl p-6">
+                    <h3 class="font-bold mb-3">Suggested Users</h3>
+                    <div id="suggested-users" class="space-y-3"></div>
+                </div>
+            </div>
         </main>
+    </div>
+
+    <!-- Chat Modal -->
+    <div id="chat-modal" class="modal hidden">
+        <div class="glass rounded-2xl w-full max-w-md m-4">
+            <div class="p-4 border-b border-white/10 flex justify-between items-center">
+                <h3 id="chat-with-name" class="font-bold">Chat</h3>
+                <button onclick="closeChat()" class="text-2xl">×</button>
+            </div>
+            <div id="chat-messages" class="chat-box p-4 space-y-2"></div>
+            <div class="p-4 border-t border-white/10 flex gap-2">
+                <input id="chat-input" type="text" placeholder="Type message..." class="flex-1 p-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm">
+                <button onclick="sendMessage()" class="bg-purple-500 text-white px-4 py-2 rounded-lg text-sm">Send</button>
+            </div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, getDocs, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, deleteDoc, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyCeHwDLfwsAwXh6Wf0fwCw-nwSLSmPj_qI",
@@ -108,6 +149,8 @@
         window.currentUser = null;
         window.userData = null;
         window.selectedImage = null;
+        window.currentChatUser = null;
+        window.isDark = true;
 
         window.showSignupForm = () => {
             document.getElementById('login-form').classList.add('hidden');
@@ -126,6 +169,8 @@
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
                 loadPosts();
+                loadSuggestedUsers();
+                loadChatBadge();
             } else {
                 window.currentUser = null;
                 document.getElementById('auth-screen').classList.remove('hidden');
@@ -137,28 +182,23 @@
             const name = document.getElementById('signup-name').value.trim();
             const email = document.getElementById('signup-email').value.trim();
             const password = document.getElementById('signup-password').value;
-            if (!name ||!email ||!password) return alert('Fill all fields Wenggay');
+            if (!name ||!email ||!password) return alert('Fill all fields');
             if (password.length < 6) return alert('Password must be 6+ characters');
             try {
                 const userCred = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCred.user, { displayName: name });
                 await setDoc(doc(db, 'users', userCred.user.uid), {
-                    name: name, email: email, bio: '', level: 1, posts: 0, createdAt: serverTimestamp()
+                    name: name, email: email, bio: '', profilePic: '', level: 1, posts: 0, followers: [], following: [], createdAt: serverTimestamp()
                 });
-            } catch (error) {
-                alert('Signup failed: ' + error.message);
-            }
+            } catch (error) { alert('Signup failed: ' + error.message); }
         };
 
         window.handleLogin = async () => {
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
-            if (!email ||!password) return alert('Fill all fields Wenggay');
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-            } catch (error) {
-                alert('Login failed: ' + error.message);
-            }
+            if (!email ||!password) return alert('Fill all fields');
+            try { await signInWithEmailAndPassword(auth, email, password); } 
+            catch (error) { alert('Login failed: ' + error.message); }
         };
 
         window.handleLogout = () => signOut(auth);
@@ -167,15 +207,47 @@
             const userDoc = await getDoc(doc(db, 'users', window.currentUser.uid));
             if (userDoc.exists()) {
                 window.userData = userDoc.data();
-                document.getElementById('user-name').textContent = window.userData.name || 'User';
-                document.getElementById('profile-name').textContent = window.userData.name || 'User';
+                document.getElementById('user-name').textContent = window.userData.name;
+                document.getElementById('profile-name').textContent = window.userData.name;
                 document.getElementById('profile-bio').textContent = window.userData.bio || 'Click edit to add bio';
-                document.getElementById('profile-initial').textContent = (window.userData.name || 'U')[0].toUpperCase();
+                document.getElementById('profile-initial').textContent = window.userData.name[0].toUpperCase();
                 document.getElementById('user-level').textContent = window.userData.level || 1;
                 document.getElementById('profile-level').textContent = window.userData.level || 1;
                 document.getElementById('post-count').textContent = window.userData.posts || 0;
+                document.getElementById('follower-count').textContent = (window.userData.followers || []).length;
+                document.getElementById('following-count').textContent = (window.userData.following || []).length;
+                if (window.userData.profilePic) {
+                    document.getElementById('profile-pic').src = window.userData.profilePic;
+                    document.getElementById('profile-pic').classList.remove('hidden');
+                    document.getElementById('profile-initial-bg').classList.add('hidden');
+                }
             }
         }
+
+        window.toggleDarkMode = () => {
+            window.isDark =!window.isDark;
+            document.body.classList.toggle('light');
+            event.target.textContent = window.isDark? '🌙' : '☀️';
+            localStorage.setItem('darkMode', window.isDark);
+        };
+
+        if (localStorage.getItem('darkMode') === 'false') toggleDarkMode();
+
+        document.getElementById('profile-pic-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const pic = e.target.result;
+                    await updateDoc(doc(db, 'users', window.currentUser.uid), { profilePic: pic });
+                    window.userData.profilePic = pic;
+                    document.getElementById('profile-pic').src = pic;
+                    document.getElementById('profile-pic').classList.remove('hidden');
+                    document.getElementById('profile-initial-bg').classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
         window.editBio = () => {
             document.getElementById('bio-input').value = window.userData.bio || '';
@@ -220,26 +292,18 @@
             if (!content &&!window.selectedImage) return alert('Write something or add image');
             try {
                 await addDoc(collection(db, 'posts'), {
-                    content: content,
-                    image: window.selectedImage || null,
-                    authorId: window.currentUser.uid,
-                    authorName: window.userData.name,
-                    likes: [],
-                    comments: [],
-                    createdAt: serverTimestamp()
+                    content: content, image: window.selectedImage || null, authorId: window.currentUser.uid,
+                    authorName: window.userData.name, authorPic: window.userData.profilePic || '', likes: [], comments: [], createdAt: serverTimestamp()
                 });
                 await updateDoc(doc(db, 'users', window.currentUser.uid), {
-                    posts: increment(1),
-                    level: Math.floor(((window.userData.posts || 0) + 1) / 5) + 1
+                    posts: increment(1), level: Math.floor(((window.userData.posts || 0) + 1) / 5) + 1
                 });
                 document.getElementById('post-content').value = '';
                 window.selectedImage = null;
                 document.getElementById('post-image').value = '';
                 document.getElementById('image-preview').classList.add('hidden');
                 await loadUserData();
-            } catch (error) {
-                alert('Post failed: ' + error.message);
-            }
+            } catch (error) { alert('Post failed: ' + error.message); }
         };
 
         function loadPosts() {
@@ -251,90 +315,14 @@
                     postsFeed.innerHTML = '<div class="glass rounded-2xl p-6 text-center text-gray-400">No posts yet. Create one!</div>';
                     return;
                 }
-                snapshot.forEach((doc) => {
-                    try {
-                        const post = doc.data();
-                        const postId = doc.id;
-                        const isLiked = post.likes?.includes(window.currentUser.uid);
-                        const isOwner = post.authorId === window.currentUser.uid;
+                snapshot.forEach((docSnap) => {
+                    const post = docSnap.data();
+                    const postId = docSnap.id;
+                    const isLiked = post.likes?.includes(window.currentUser.uid);
+                    const isOwner = post.authorId === window.currentUser.uid;
+                    const isFollowing = (window.userData.following || []).includes(post.authorId);
 
-                        let timeString = 'Just now';
-                        try {
-                            if (post.createdAt && typeof post.createdAt.toDate === 'function') {
-                                timeString = post.createdAt.toDate().toLocaleString();
-                            }
-                        } catch(e) {}
+                    let timeString = 'Just now';
+                    try { if (post.createdAt?.toDate) timeString = post.createdAt.toDate().toLocaleString(); } catch(e) {}
 
-                        const postEl = document.createElement('div');
-                        postEl.className = 'glass rounded-2xl p-6';
-                        postEl.innerHTML = `
-                            <div class="flex justify-between items-start mb-4">
-                                <div>
-                                    <h3 class="font-semibold">${post.authorName || 'Anonymous'}</h3>
-                                    <p class="text-xs text-gray-400">${timeString}</p>
-                                </div>
-                                ${isOwner? `<button onclick="deletePost('${postId}')" class="text-red-400 text-sm">Delete</button>` : ''}
-                            </div>
-                            <p class="mb-4">${post.content || ''}</p>
-                            ${post.image? `<img src="${post.image}" class="w-full rounded-lg mb-4 max-h-96 object-cover">` : ''}
-                            <div class="flex gap-4 text-sm text-gray-400 border-t border-white/10 pt-4">
-                                <button onclick="toggleLike('${postId}')" class="like-btn flex items-center gap-1 ${isLiked? 'liked' : ''}">
-                                    <span>❤️</span> <span>${post.likes?.length || 0}</span>
-                                </button>
-                                <button onclick="toggleComments('${postId}')" class="comment-btn flex items-center gap-1">
-                                    <span>💬</span> <span>${post.comments?.length || 0}</span>
-                                </button>
-                            </div>
-                            <div class="comments-section mt-4 hidden" id="comments-${postId}">
-                                <div class="comments-list space-y-2 mb-3">
-                                    ${(post.comments || []).map(c => `<div class="comment-box p-3 rounded-lg text-sm"><span class="font-semibold">${c.authorName}:</span> ${c.text}</div>`).join('')}
-                                </div>
-                                <div class="flex gap-2">
-                                    <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." class="flex-1 p-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm">
-                                    <button onclick="sendComment('${postId}')" class="bg-purple-500 text-white px-4 py-2 rounded-lg text-sm">Send</button>
-                                </div>
-                            </div>
-                        `;
-                        postsFeed.appendChild(postEl);
-                    } catch (error) {
-                        console.error('Error rendering post:', error);
-                    }
-                });
-            });
-        }
-
-        window.toggleLike = async (postId) => {
-            const postRef = doc(db, 'posts', postId);
-            const postDoc = await getDoc(postRef);
-            const likes = postDoc.data().likes || [];
-            if (likes.includes(window.currentUser.uid)) {
-                await updateDoc(postRef, { likes: arrayRemove(window.currentUser.uid) });
-            } else {
-                await updateDoc(postRef, { likes: arrayUnion(window.currentUser.uid) });
-            }
-        };
-
-        window.toggleComments = (postId) => {
-            document.getElementById(`comments-${postId}`).classList.toggle('hidden');
-        };
-
-        window.sendComment = async (postId) => {
-            const input = document.getElementById(`comment-input-${postId}`);
-            const text = input.value.trim();
-            if (!text) return;
-            await updateDoc(doc(db, 'posts', postId), {
-                comments: arrayUnion({ text: text, authorId: window.currentUser.uid, authorName: window.userData.name, createdAt: new Date() })
-            });
-            input.value = '';
-        };
-
-        window.deletePost = async (postId) => {
-            if (confirm('Delete this post?')) {
-                await deleteDoc(doc(db, 'posts', postId));
-                await updateDoc(doc(db, 'users', window.currentUser.uid), { posts: increment(-1) });
-                await loadUserData();
-            }
-        };
-    </script>
-</body>
-</html>
+                    const postEl = doc
