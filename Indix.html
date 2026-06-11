@@ -1,35 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Tap Game</title>
+<title>Slot Machine Demo</title>
 <style>
 body{
     text-align:center;
     font-family:Arial;
     margin-top:50px;
 }
-button{
-    font-size:30px;
-    padding:20px;
+.slot{
+    font-size:60px;
+    margin:20px;
 }
-#score{
-    font-size:40px;
+button{
+    padding:10px 20px;
+    font-size:20px;
 }
 </style>
 </head>
 <body>
 
-<h1>Tap Game</h1>
-<p>Score: <span id="score">0</span></p>
+<h1>🎰 Slot Machine Demo</h1>
 
-<button onclick="addPoint()">TAP!</button>
+<div class="slot" id="result">🍒 🍋 🍊</div>
+
+<button onclick="spin()">SPIN</button>
 
 <script>
-let score = 0;
+function spin() {
+    const symbols = ["🍒","🍋","🍊","⭐","💎","7️⃣"];
+    let a = symbols[Math.floor(Math.random()*symbols.length)];
+    let b = symbols[Math.floor(Math.random()*symbols.length)];
+    let c = symbols[Math.floor(Math.random()*symbols.length)];
 
-function addPoint(){
-    score++;
-    document.getElementById("score").innerText = score;
+    document.getElementById("result").innerText =
+        a + " " + b + " " + c;
 }
 </script>
 
