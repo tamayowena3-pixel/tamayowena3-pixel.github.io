@@ -8,18 +8,19 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
-      .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-      .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-      .hidden { display: none!important; }
-      .like-btn.liked { color: #ef4444; }
-      .comment-box { background: rgba(255,255,255,0.03); }
-        button { cursor: pointer; }
-        input[type="file"]::-webkit-file-upload-button { 
-            background: rgba(255,255,255,0.1); 
-            border: 1px solid rgba(255,255,255,0.2); 
-            color: white; 
-            padding: 8px 12px; 
-            border-radius: 8px; 
+       .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+       .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor: pointer; }
+       .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+       .hidden { display: none!important; }
+       .like-btn.liked { color: #ef4444; }
+       .comment-box { background: rgba(255,255,255,0.03); }
+        button { cursor: pointer; z-index: 10; position: relative; }
+        input[type="file"]::-webkit-file-upload-button {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
             cursor: pointer;
         }
     </style>
@@ -33,14 +34,14 @@
                 <input id="login-email" type="email" placeholder="Email" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
                 <input id="login-password" type="password" placeholder="Password" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
                 <button id="login-btn" class="w-full btn-primary text-white p-3 rounded-lg font-semibold mb-4">Login</button>
-                <p class="text-center text-gray-400">No account? <span id="show-signup" class="text-purple-400 cursor-pointer">Sign up</span></p>
+                <p class="text-center text-gray-400">No account? <span id="show-signup" class="text-purple-400 cursor-pointer underline">Sign up</span></p>
             </div>
             <div id="signup-form" class="hidden">
                 <input id="signup-name" type="text" placeholder="Full Name" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
                 <input id="signup-email" type="email" placeholder="Email" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
-                <input id="signup-password" type="password" placeholder="Password" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
+                <input id="signup-password" type="password" placeholder="Password (6+ characters)" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
                 <button id="signup-btn" class="w-full btn-primary text-white p-3 rounded-lg font-semibold mb-4">Sign Up</button>
-                <p class="text-center text-gray-400">Have account? <span id="show-login" class="text-purple-400 cursor-pointer">Login</span></p>
+                <p class="text-center text-gray-400">Have account? <span id="show-login" class="text-purple-400 cursor-pointer underline">Login</span></p>
             </div>
         </div>
     </div>
@@ -146,6 +147,16 @@
         let userData = null;
         let selectedImage = null;
 
+        showSignup.addEventListener('click', () => {
+            loginForm.classList.add('hidden');
+            signupForm.classList.remove('hidden');
+        });
+
+        showLogin.addEventListener('click', () => {
+            signupForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        });
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -160,21 +171,15 @@
             }
         });
 
-        showSignup.onclick = () => {
-            loginForm.classList.add('hidden');
-            signupForm.classList.remove('hidden');
-        };
-        showLogin.onclick = () => {
-            signupForm.classList.add('hidden');
-            loginForm.classList.remove('hidden');
-        };
-
-        signupBtn.onclick = async () => {
-            const name = document.getElementById('signup-name').value;
-            const email = document.getElementById('signup-email').value;
+        signupBtn.addEventListener('click', async () => {
+            const name = document.getElementById('signup-name').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
             const password = document.getElementById('signup-password').value;
             if (!name ||!email ||!password) return alert('Fill all fields');
+            if (password.length < 6) return alert('Password must be 6+ characters');
             try {
+                signupBtn.textContent = 'Creating...';
+                signupBtn.disabled = true;
                 const userCred = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCred.user, { displayName: name });
                 await setDoc(doc(db, 'users', userCred.user.uid), {
@@ -182,21 +187,29 @@
                 });
             } catch (error) {
                 alert('Signup failed: ' + error.message);
+            } finally {
+                signupBtn.textContent = 'Sign Up';
+                signupBtn.disabled = false;
             }
-        };
+        });
 
-        loginBtn.onclick = async () => {
-            const email = document.getElementById('login-email').value;
+        loginBtn.addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
             if (!email ||!password) return alert('Fill all fields');
             try {
+                loginBtn.textContent = 'Logging in...';
+                loginBtn.disabled = true;
                 await signInWithEmailAndPassword(auth, email, password);
             } catch (error) {
                 alert('Login failed: ' + error.message);
+            } finally {
+                loginBtn.textContent = 'Login';
+                loginBtn.disabled = false;
             }
-        };
+        });
 
-        logoutBtn.onclick = () => signOut(auth);
+        logoutBtn.addEventListener('click', () => signOut(auth));
 
         async function loadUserData() {
             const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
@@ -212,15 +225,15 @@
             }
         }
 
-        editBioBtn.onclick = () => {
+        editBioBtn.addEventListener('click', () => {
             bioInput.value = userData.bio || '';
             bioInput.classList.remove('hidden');
             saveBioBtn.classList.remove('hidden');
             editBioBtn.classList.add('hidden');
             profileBio.classList.add('hidden');
-        };
+        });
 
-        saveBioBtn.onclick = async () => {
+        saveBioBtn.addEventListener('click', async () => {
             const newBio = bioInput.value;
             await updateDoc(doc(db, 'users', currentUser.uid), { bio: newBio });
             userData.bio = newBio;
@@ -229,9 +242,9 @@
             saveBioBtn.classList.add('hidden');
             editBioBtn.classList.remove('hidden');
             profileBio.classList.remove('hidden');
-        };
+        });
 
-        postImage.onchange = (e) => {
+        postImage.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
@@ -242,29 +255,31 @@
                 };
                 reader.readAsDataURL(file);
             }
-        };
+        });
 
-        removeImage.onclick = () => {
+        removeImage.addEventListener('click', () => {
             selectedImage = null;
             postImage.value = '';
             imagePreview.classList.add('hidden');
-        };
+        });
 
-        createPostBtn.onclick = async () => {
+        createPostBtn.addEventListener('click', async () => {
             const content = postContent.value.trim();
             if (!content &&!selectedImage) return alert('Write something or add image');
             try {
+                createPostBtn.textContent = 'Posting...';
+                createPostBtn.disabled = true;
                 await addDoc(collection(db, 'posts'), {
-                    content: content, 
+                    content: content,
                     image: selectedImage || null,
-                    authorId: currentUser.uid, 
+                    authorId: currentUser.uid,
                     authorName: userData.name,
-                    likes: [], 
-                    comments: [], 
+                    likes: [],
+                    comments: [],
                     createdAt: serverTimestamp()
                 });
                 await updateDoc(doc(db, 'users', currentUser.uid), {
-                    posts: increment(1), 
+                    posts: increment(1),
                     level: Math.floor(((userData.posts || 0) + 1) / 5) + 1
                 });
                 postContent.value = '';
@@ -274,8 +289,11 @@
                 await loadUserData();
             } catch (error) {
                 alert('Post failed: ' + error.message);
+            } finally {
+                createPostBtn.textContent = 'Post';
+                createPostBtn.disabled = false;
             }
-        };
+        });
 
         function loadPosts() {
             const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
@@ -291,7 +309,7 @@
                         const postId = doc.id;
                         const isLiked = post.likes?.includes(currentUser.uid);
                         const isOwner = post.authorId === currentUser.uid;
-                        
+
                         let timeString = 'Just now';
                         try {
                             if (post.createdAt && typeof post.createdAt.toDate === 'function') {
@@ -300,7 +318,7 @@
                                 timeString = new Date(post.createdAt).toLocaleString();
                             }
                         } catch(e) {}
-                        
+
                         const postEl = document.createElement('div');
                         postEl.className = 'glass rounded-2xl p-6';
                         postEl.innerHTML = `
@@ -344,28 +362,8 @@
                         console.error('Error rendering post:', error);
                     }
                 });
-            }, (error) => {
-                console.error('Posts load error:', error);
-                postsFeed.innerHTML = '<div class="glass rounded-2xl p-6 text-center text-red-400">Error loading posts. Check console.</div>';
             });
         }
 
         postsFeed.addEventListener('click', async (e) => {
-            const target = e.target.closest('button');
-            if (!target) return;
-            const postId = target.dataset.id;
-            if (!postId) return;
-
-            if (target.classList.contains('like-btn')) {
-                const postRef = doc(db, 'posts', postId);
-                const postDoc = await getDoc(postRef);
-                const likes = postDoc.data().likes || [];
-                if (likes.includes(currentUser.uid)) {
-                    await updateDoc(postRef, { likes: arrayRemove(currentUser.uid) });
-                } else {
-                    await updateDoc(postRef, { likes: arrayUnion(currentUser.uid) });
-                }
-            }
-
-            if (target.classList.contains('comment-btn')) {
-                document.getElementById(`comments-${postId}`).classList.t
+         
