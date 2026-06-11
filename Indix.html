@@ -8,12 +8,20 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
-       .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-       .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-       .hidden { display: none!important; }
-       .like-btn.liked { color: #ef4444; }
-       .comment-box { background: rgba(255,255,255,0.03); }
+      .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+      .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+      .hidden { display: none!important; }
+      .like-btn.liked { color: #ef4444; }
+      .comment-box { background: rgba(255,255,255,0.03); }
         button { cursor: pointer; }
+        input[type="file"]::-webkit-file-upload-button { 
+            background: rgba(255,255,255,0.1); 
+            border: 1px solid rgba(255,255,255,0.2); 
+            color: white; 
+            padding: 8px 12px; 
+            border-radius: 8px; 
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -77,6 +85,11 @@
                 <div class="glass rounded-2xl p-6">
                     <h2 class="text-xl font-bold mb-4">Create Post</h2>
                     <textarea id="post-content" placeholder="What's on your mind, Wenggay?" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white mb-3 h-24"></textarea>
+                    <input type="file" id="post-image" accept="image/*" class="w-full mb-3 text-sm text-gray-400">
+                    <div id="image-preview" class="hidden mb-3">
+                        <img id="preview-img" class="w-full rounded-lg max-h-64 object-cover">
+                        <button id="remove-image" class="text-red-400 text-sm mt-2">Remove Image</button>
+                    </div>
                     <button id="create-post-btn" class="w-full btn-primary text-white p-3 rounded-lg font-semibold">Post</button>
                 </div>
                 <div id="posts-feed" class="space-y-4"></div>
@@ -124,9 +137,14 @@
         const editBioBtn = document.getElementById('edit-bio-btn');
         const saveBioBtn = document.getElementById('save-bio-btn');
         const bioInput = document.getElementById('bio-input');
+        const postImage = document.getElementById('post-image');
+        const imagePreview = document.getElementById('image-preview');
+        const previewImg = document.getElementById('preview-img');
+        const removeImage = document.getElementById('remove-image');
 
         let currentUser = null;
         let userData = null;
+        let selectedImage = null;
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -213,18 +231,46 @@
             profileBio.classList.remove('hidden');
         };
 
+        postImage.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    selectedImage = e.target.result;
+                    previewImg.src = selectedImage;
+                    imagePreview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        removeImage.onclick = () => {
+            selectedImage = null;
+            postImage.value = '';
+            imagePreview.classList.add('hidden');
+        };
+
         createPostBtn.onclick = async () => {
             const content = postContent.value.trim();
-            if (!content) return;
+            if (!content &&!selectedImage) return alert('Write something or add image');
             try {
                 await addDoc(collection(db, 'posts'), {
-                    content: content, authorId: currentUser.uid, authorName: userData.name,
-                    likes: [], comments: [], createdAt: serverTimestamp()
+                    content: content, 
+                    image: selectedImage || null,
+                    authorId: currentUser.uid, 
+                    authorName: userData.name,
+                    likes: [], 
+                    comments: [], 
+                    createdAt: serverTimestamp()
                 });
                 await updateDoc(doc(db, 'users', currentUser.uid), {
-                    posts: increment(1), level: Math.floor(((userData.posts || 0) + 1) / 5) + 1
+                    posts: increment(1), 
+                    level: Math.floor(((userData.posts || 0) + 1) / 5) + 1
                 });
                 postContent.value = '';
+                selectedImage = null;
+                postImage.value = '';
+                imagePreview.classList.add('hidden');
                 await loadUserData();
             } catch (error) {
                 alert('Post failed: ' + error.message);
@@ -266,6 +312,7 @@
                                 ${isOwner? `<button class="delete-post text-red-400 text-sm" data-id="${postId}">Delete</button>` : ''}
                             </div>
                             <p class="mb-4">${post.content || ''}</p>
+                            ${post.image? `<img src="${post.image}" class="w-full rounded-lg mb-4 max-h-96 object-cover">` : ''}
                             <div class="flex gap-4 text-sm text-gray-400 border-t border-white/10 pt-4">
                                 <button class="like-btn flex items-center gap-1 ${isLiked? 'liked' : ''}" data-id="${postId}">
                                     <span>❤️</span> <span>${post.likes?.length || 0}</span>
@@ -321,27 +368,4 @@
             }
 
             if (target.classList.contains('comment-btn')) {
-                document.getElementById(`comments-${postId}`).classList.toggle('hidden');
-            }
-
-            if (target.classList.contains('send-comment')) {
-                const commentInput = target.previousElementSibling;
-                const text = commentInput.value.trim();
-                if (!text) return;
-                await updateDoc(doc(db, 'posts', postId), {
-                    comments: arrayUnion({ text: text, authorId: currentUser.uid, authorName: userData.name, createdAt: new Date() })
-                });
-                commentInput.value = '';
-            }
-
-            if (target.classList.contains('delete-post')) {
-                if (confirm('Delete this post?')) {
-                    await deleteDoc(doc(db, 'posts', postId));
-                    await updateDoc(doc(db, 'users', currentUser.uid), { posts: increment(-1) });
-                    await loadUserData();
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+                document.getElementById(`comments-${postId}`).classList.t
