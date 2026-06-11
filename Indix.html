@@ -7,34 +7,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        :root {
-            --bg: #0a0a0a;
-            --text: #fff;
-            --glass: rgba(255,255,255,0.05);
-            --border: rgba(255,255,255,0.1);
-        }
-        body.light {
-            --bg: #f5f5f5;
-            --text: #0a0a0a;
-            --glass: rgba(0,0,0,0.05);
-            --border: rgba(0,0,0,0.1);
-        }
+        :root { --bg: #0a0a0a; --text: #fff; --glass: rgba(255,255,255,0.05); --border: rgba(255,255,255,0.1); }
+        body.light { --bg: #f5f5f5; --text: #0a0a0a; --glass: rgba(0,0,0,0.05); --border: rgba(0,0,0,0.1); }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); transition: all 0.3s; }
        .glass { background: var(--glass); backdrop-filter: blur(10px); border: 1px solid var(--border); }
        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor: pointer; }
        .hidden { display: none!important; }
-       .like-btn.liked, .comment-like.liked { color: #ef4444; }
+       .like-btn.liked,.comment-like.liked { color: #ef4444; }
        .comment-box { background: var(--glass); }
         button { cursor: pointer; z-index: 10; position: relative; }
-        input[type="file"]::-webkit-file-upload-button {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .chat-box { height: 300px; overflow-y: auto; }
+        input[type="file"]::-webkit-file-upload-button { background: var(--glass); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+       .chat-box { height: 300px; overflow-y: auto; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -56,7 +39,6 @@
             </div>
         </div>
     </div>
-
     <div id="main-app" class="hidden">
         <header class="glass sticky top-0 z-50 p-4">
             <div class="max-w-6xl mx-auto flex justify-between items-center gap-4">
@@ -67,9 +49,7 @@
                 </div>
                 <div class="flex items-center gap-3">
                     <button onclick="toggleTheme()" class="p-2 rounded-lg bg-white/10"><span id="theme-icon">🌙</span></button>
-                    <button onclick="openDM()" class="p-2 rounded-lg bg-white/10 relative">
-                        💬<span id="dm-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
-                    </button>
+                    <button onclick="openDM()" class="p-2 rounded-lg bg-white/10 relative">💬<span id="dm-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span></button>
                     <div class="text-right">
                         <p id="user-name" class="font-semibold text-sm"></p>
                         <p class="text-xs text-gray-400">Level <span id="user-level">1</span></p>
@@ -78,7 +58,6 @@
                 </div>
             </div>
         </header>
-
         <main class="max-w-6xl mx-auto p-4 grid md:grid-cols-4 gap-6">
             <div class="md:col-span-1">
                 <div class="glass rounded-2xl p-6 mb-4">
@@ -105,7 +84,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="md:col-span-2 space-y-6">
                 <div class="glass rounded-2xl p-6">
                     <h2 class="text-xl font-bold mb-4">Create Post</h2>
@@ -119,7 +97,6 @@
                 </div>
                 <div id="posts-feed" class="space-y-4"></div>
             </div>
-
             <div class="md:col-span-1">
                 <div id="user-profile-view" class="glass rounded-2xl p-6 hidden">
                     <h2 class="text-xl font-bold mb-4">User Profile</h2>
@@ -143,7 +120,6 @@
             </div>
         </main>
     </div>
-
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -167,6 +143,166 @@
         window.selectedImage = null;
         window.currentChatUser = null;
 
-        // Theme
         if (localStorage.getItem('theme') === 'light') {
-            document.body.class
+            document.body.classList.add('light');
+            document.getElementById('theme-icon').textContent = '☀️';
+        }
+
+        window.toggleTheme = () => {
+            document.body.classList.toggle('light');
+            const isLight = document.body.classList.contains('light');
+            localStorage.setItem('theme', isLight? 'light' : 'dark');
+            document.getElementById('theme-icon').textContent = isLight? '☀️' : '🌙';
+        };
+
+        window.showSignupForm = () => {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('signup-form').classList.remove('hidden');
+        };
+
+        window.showLoginForm = () => {
+            document.getElementById('signup-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                window.currentUser = user;
+                await loadUserData();
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                loadPosts();
+                loadDMs();
+            } else {
+                window.currentUser = null;
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('main-app').classList.add('hidden');
+            }
+        });
+
+        window.handleSignup = async () => {
+            const name = document.getElementById('signup-name').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value;
+            if (!name ||!email ||!password) return alert('Fill all fields');
+            if (password.length < 6) return alert('Password must be 6+ characters');
+            try {
+                const userCred = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(userCred.user, { displayName: name });
+                await setDoc(doc(db, 'users', userCred.user.uid), {
+                    name: name, email: email, bio: '', profilePic: '', level: 1, posts: 0,
+                    followers: [], following: [], createdAt: serverTimestamp()
+                });
+            } catch (error) { alert('Signup failed: ' + error.message); }
+        };
+
+        window.handleLogin = async () => {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            if (!email ||!password) return alert('Fill all fields');
+            try { await signInWithEmailAndPassword(auth, email, password); }
+            catch (error) { alert('Login failed: ' + error.message); }
+        };
+
+        window.handleLogout = () => signOut(auth);
+
+        async function loadUserData() {
+            const userDoc = await getDoc(doc(db, 'users', window.currentUser.uid));
+            if (userDoc.exists()) {
+                window.userData = userDoc.data();
+                document.getElementById('user-name').textContent = window.userData.name;
+                document.getElementById('profile-name').textContent = window.userData.name;
+                document.getElementById('profile-bio').textContent = window.userData.bio || 'Click edit to add bio';
+                document.getElementById('profile-initial').textContent = window.userData.name[0].toUpperCase();
+                document.getElementById('user-level').textContent = window.userData.level || 1;
+                document.getElementById('post-count').textContent = window.userData.posts || 0;
+                document.getElementById('followers-count').textContent = window.userData.followers?.length || 0;
+                document.getElementById('following-count').textContent = window.userData.following?.length || 0;
+                if (window.userData.profilePic) {
+                    document.getElementById('profile-pic').src = window.userData.profilePic;
+                    document.getElementById('profile-pic').classList.remove('hidden');
+                    document.getElementById('profile-initial-div').classList.add('hidden');
+                }
+            }
+        }
+
+        document.getElementById('profile-pic-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const pic = e.target.result;
+                    await updateDoc(doc(db, 'users', window.currentUser.uid), { profilePic: pic });
+                    document.getElementById('profile-pic').src = pic;
+                    document.getElementById('profile-pic').classList.remove('hidden');
+                    document.getElementById('profile-initial-div').classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        window.editBio = () => {
+            document.getElementById('bio-input').value = window.userData.bio || '';
+            document.getElementById('bio-input').classList.remove('hidden');
+            document.getElementById('save-bio-btn').classList.remove('hidden');
+            event.target.classList.add('hidden');
+            document.getElementById('profile-bio').classList.add('hidden');
+        };
+
+        window.saveBio = async () => {
+            const newBio = document.getElementById('bio-input').value;
+            await updateDoc(doc(db, 'users', window.currentUser.uid), { bio: newBio });
+            window.userData.bio = newBio;
+            document.getElementById('profile-bio').textContent = newBio || 'Click edit to add bio';
+            document.getElementById('bio-input').classList.add('hidden');
+            document.getElementById('save-bio-btn').classList.add('hidden');
+            document.querySelector('[onclick="editBio()"]').classList.remove('hidden');
+            document.getElementById('profile-bio').classList.remove('hidden');
+        };
+
+        document.getElementById('search-users').addEventListener('input', async (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const resultsDiv = document.getElementById('search-results');
+            if (!searchTerm) { resultsDiv.classList.add('hidden'); return; }
+            const q = query(collection(db, 'users'));
+            const snapshot = await getDocs(q);
+            resultsDiv.innerHTML = '';
+            let found = false;
+            snapshot.forEach((docSnap) => {
+                const user = docSnap.data();
+                if (user.name.toLowerCase().includes(searchTerm) && docSnap.id!== window.currentUser.uid) {
+                    found = true;
+                    const userEl = document.createElement('div');
+                    userEl.className = 'flex items-center gap-3 p-2 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer';
+                    userEl.onclick = () => viewUserProfile(docSnap.id, user);
+                    userEl.innerHTML = `
+                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center font-bold text-sm">
+                            ${user.profilePic? `<img src="${user.profilePic}" class="w-10 h-10 rounded-full object-cover">` : user.name[0].toUpperCase()}
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-sm">${user.name}</p>
+                            <p class="text-xs text-gray-400">Level ${user.level || 1}</p>
+                        </div>
+                    `;
+                    resultsDiv.appendChild(userEl);
+                }
+            });
+            if (found) resultsDiv.classList.remove('hidden');
+            else { resultsDiv.innerHTML = '<p class="text-gray-400 text-sm p-2">No users found</p>'; resultsDiv.classList.remove('hidden'); }
+        });
+
+        window.viewUserProfile = (userId, user) => {
+            const isFollowing = window.userData.following?.includes(userId);
+            document.getElementById('view-profile-content').innerHTML = `
+                <div class="text-center mb-4">
+                    <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl font-bold">
+                        ${user.profilePic? `<img src="${user.profilePic}" class="w-20 h-20 rounded-full object-cover">` : user.name[0].toUpperCase()}
+                    </div>
+                    <h3 class="font-semibold text-lg">${user.name}</h3>
+                    <p class="text-gray-400 text-sm mt-2">${user.bio || 'No bio'}</p>
+                    <p class="text-xs text-gray-400 mt-2">Level ${user.level || 1} | ${user.followers?.length || 0} Followers</p>
+                </div>
+                <button onclick="toggleFollow('${userId}')" class="w-full ${isFollowing? 'bg-gray-500' : 'btn-primary'} text-white p-2 rounded-lg text-sm mb-2">
+                    ${isFollowing? 'Unfollow' : 'Follow'}
+                </button>
+                <button onclick="startChat('${userId}
