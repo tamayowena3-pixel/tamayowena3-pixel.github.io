@@ -8,45 +8,34 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
-       .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-       .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor: pointer; }
-       .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-       .hidden { display: none!important; }
-       .like-btn.liked { color: #ef4444; }
-       .comment-box { background: rgba(255,255,255,0.03); }
-        button { cursor: pointer; z-index: 10; position: relative; }
-        input[type="file"]::-webkit-file-upload-button {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
+     .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+     .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+     .hidden { display: none!important; }
+     .like-btn.liked { color: #ef4444; }
+     .comment-box { background: rgba(255,255,255,0.03); }
+        button { cursor: pointer; z-index: 9999; }
     </style>
 </head>
 <body class="min-h-screen">
-    <!-- Auth Screen -->
     <div id="auth-screen" class="min-h-screen flex items-center justify-center p-4">
         <div class="glass rounded-2xl p-8 w-full max-w-md">
             <h1 class="text-3xl font-bold text-center mb-8">Welcome Wenggay 👑</h1>
             <div id="login-form">
                 <input id="login-email" type="email" placeholder="Email" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
                 <input id="login-password" type="password" placeholder="Password" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
-                <button id="login-btn" class="w-full btn-primary text-white p-3 rounded-lg font-semibold mb-4">Login</button>
-                <p class="text-center text-gray-400">No account? <span id="show-signup" class="text-purple-400 cursor-pointer underline">Sign up</span></p>
+                <button onclick="handleLogin()" class="w-full btn-primary text-white p-3 rounded-lg font-semibold mb-4">Login</button>
+                <p class="text-center text-gray-400">No account? <span onclick="showSignupForm()" class="text-purple-400 cursor-pointer underline">Sign up</span></p>
             </div>
             <div id="signup-form" class="hidden">
                 <input id="signup-name" type="text" placeholder="Full Name" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
                 <input id="signup-email" type="email" placeholder="Email" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
                 <input id="signup-password" type="password" placeholder="Password (6+ characters)" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-white">
-                <button id="signup-btn" class="w-full btn-primary text-white p-3 rounded-lg font-semibold mb-4">Sign Up</button>
-                <p class="text-center text-gray-400">Have account? <span id="show-login" class="text-purple-400 cursor-pointer underline">Login</span></p>
+                <button onclick="handleSignup()" class="w-full btn-primary text-white p-3 rounded-lg font-semibold mb-4">Sign Up</button>
+                <p class="text-center text-gray-400">Have account? <span onclick="showLoginForm()" class="text-purple-400 cursor-pointer underline">Login</span></p>
             </div>
         </div>
     </div>
 
-    <!-- Main App -->
     <div id="main-app" class="hidden">
         <header class="glass sticky top-0 z-50 p-4">
             <div class="max-w-4xl mx-auto flex justify-between items-center">
@@ -56,7 +45,7 @@
                         <p id="user-name" class="font-semibold"></p>
                         <p class="text-xs text-gray-400">Level <span id="user-level">1</span></p>
                     </div>
-                    <button id="logout-btn" class="bg-red-500/20 text-red-400 px-4 py-2 rounded-lg">Logout</button>
+                    <button onclick="handleLogout()" class="bg-red-500/20 text-red-400 px-4 py-2 rounded-lg">Logout</button>
                 </div>
             </div>
         </header>
@@ -73,8 +62,8 @@
                         <p id="profile-bio" class="text-gray-400 text-sm mt-2">Click edit to add bio</p>
                     </div>
                     <textarea id="bio-input" placeholder="Write your bio..." class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white text-sm mb-3 hidden"></textarea>
-                    <button id="edit-bio-btn" class="w-full bg-white/10 text-white p-2 rounded-lg text-sm mb-3">Edit Bio</button>
-                    <button id="save-bio-btn" class="w-full btn-primary text-white p-2 rounded-lg text-sm mb-3 hidden">Save Bio</button>
+                    <button onclick="editBio()" class="w-full bg-white/10 text-white p-2 rounded-lg text-sm mb-3">Edit Bio</button>
+                    <button onclick="saveBio()" id="save-bio-btn" class="w-full btn-primary text-white p-2 rounded-lg text-sm mb-3 hidden">Save Bio</button>
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between"><span class="text-gray-400">Posts</span><span id="post-count">0</span></div>
                         <div class="flex justify-between"><span class="text-gray-400">Level</span><span id="profile-level">1</span></div>
@@ -89,9 +78,9 @@
                     <input type="file" id="post-image" accept="image/*" class="w-full mb-3 text-sm text-gray-400">
                     <div id="image-preview" class="hidden mb-3">
                         <img id="preview-img" class="w-full rounded-lg max-h-64 object-cover">
-                        <button id="remove-image" class="text-red-400 text-sm mt-2">Remove Image</button>
+                        <button onclick="removeSelectedImage()" class="text-red-400 text-sm mt-2">Remove Image</button>
                     </div>
-                    <button id="create-post-btn" class="w-full btn-primary text-white p-3 rounded-lg font-semibold">Post</button>
+                    <button onclick="createPost()" class="w-full btn-primary text-white p-3 rounded-lg font-semibold">Post</button>
                 </div>
                 <div id="posts-feed" class="space-y-4"></div>
             </div>
@@ -116,70 +105,41 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const authScreen = document.getElementById('auth-screen');
-        const mainApp = document.getElementById('main-app');
-        const loginForm = document.getElementById('login-form');
-        const signupForm = document.getElementById('signup-form');
-        const showSignup = document.getElementById('show-signup');
-        const showLogin = document.getElementById('show-login');
-        const loginBtn = document.getElementById('login-btn');
-        const signupBtn = document.getElementById('signup-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const createPostBtn = document.getElementById('create-post-btn');
-        const postContent = document.getElementById('post-content');
-        const postsFeed = document.getElementById('posts-feed');
-        const userName = document.getElementById('user-name');
-        const userLevel = document.getElementById('user-level');
-        const profileName = document.getElementById('profile-name');
-        const profileBio = document.getElementById('profile-bio');
-        const profileInitial = document.getElementById('profile-initial');
-        const profileLevel = document.getElementById('profile-level');
-        const postCount = document.getElementById('post-count');
-        const editBioBtn = document.getElementById('edit-bio-btn');
-        const saveBioBtn = document.getElementById('save-bio-btn');
-        const bioInput = document.getElementById('bio-input');
-        const postImage = document.getElementById('post-image');
-        const imagePreview = document.getElementById('image-preview');
-        const previewImg = document.getElementById('preview-img');
-        const removeImage = document.getElementById('remove-image');
+        window.currentUser = null;
+        window.userData = null;
+        window.selectedImage = null;
 
-        let currentUser = null;
-        let userData = null;
-        let selectedImage = null;
+        window.showSignupForm = () => {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('signup-form').classList.remove('hidden');
+        };
 
-        showSignup.addEventListener('click', () => {
-            loginForm.classList.add('hidden');
-            signupForm.classList.remove('hidden');
-        });
-
-        showLogin.addEventListener('click', () => {
-            signupForm.classList.add('hidden');
-            loginForm.classList.remove('hidden');
-        });
+        window.showLoginForm = () => {
+            document.getElementById('signup-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        };
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                currentUser = user;
+                window.currentUser = user;
                 await loadUserData();
-                authScreen.classList.add('hidden');
-                mainApp.classList.remove('hidden');
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
                 loadPosts();
             } else {
-                currentUser = null;
-                authScreen.classList.remove('hidden');
-                mainApp.classList.add('hidden');
+                window.currentUser = null;
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('main-app').classList.add('hidden');
             }
         });
 
-        signupBtn.addEventListener('click', async () => {
+        window.handleSignup = async () => {
             const name = document.getElementById('signup-name').value.trim();
             const email = document.getElementById('signup-email').value.trim();
             const password = document.getElementById('signup-password').value;
-            if (!name ||!email ||!password) return alert('Fill all fields');
+            if (!name ||!email ||!password) return alert('Fill all fields Wenggay');
             if (password.length < 6) return alert('Password must be 6+ characters');
             try {
-                signupBtn.textContent = 'Creating...';
-                signupBtn.disabled = true;
                 const userCred = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCred.user, { displayName: name });
                 await setDoc(doc(db, 'users', userCred.user.uid), {
@@ -187,117 +147,105 @@
                 });
             } catch (error) {
                 alert('Signup failed: ' + error.message);
-            } finally {
-                signupBtn.textContent = 'Sign Up';
-                signupBtn.disabled = false;
             }
-        });
+        };
 
-        loginBtn.addEventListener('click', async () => {
+        window.handleLogin = async () => {
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
-            if (!email ||!password) return alert('Fill all fields');
+            if (!email ||!password) return alert('Fill all fields Wenggay');
             try {
-                loginBtn.textContent = 'Logging in...';
-                loginBtn.disabled = true;
                 await signInWithEmailAndPassword(auth, email, password);
             } catch (error) {
                 alert('Login failed: ' + error.message);
-            } finally {
-                loginBtn.textContent = 'Login';
-                loginBtn.disabled = false;
             }
-        });
+        };
 
-        logoutBtn.addEventListener('click', () => signOut(auth));
+        window.handleLogout = () => signOut(auth);
 
         async function loadUserData() {
-            const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+            const userDoc = await getDoc(doc(db, 'users', window.currentUser.uid));
             if (userDoc.exists()) {
-                userData = userDoc.data();
-                userName.textContent = userData.name || 'User';
-                profileName.textContent = userData.name || 'User';
-                profileBio.textContent = userData.bio || 'Click edit to add bio';
-                profileInitial.textContent = (userData.name || 'U')[0].toUpperCase();
-                userLevel.textContent = userData.level || 1;
-                profileLevel.textContent = userData.level || 1;
-                postCount.textContent = userData.posts || 0;
+                window.userData = userDoc.data();
+                document.getElementById('user-name').textContent = window.userData.name || 'User';
+                document.getElementById('profile-name').textContent = window.userData.name || 'User';
+                document.getElementById('profile-bio').textContent = window.userData.bio || 'Click edit to add bio';
+                document.getElementById('profile-initial').textContent = (window.userData.name || 'U')[0].toUpperCase();
+                document.getElementById('user-level').textContent = window.userData.level || 1;
+                document.getElementById('profile-level').textContent = window.userData.level || 1;
+                document.getElementById('post-count').textContent = window.userData.posts || 0;
             }
         }
 
-        editBioBtn.addEventListener('click', () => {
-            bioInput.value = userData.bio || '';
-            bioInput.classList.remove('hidden');
-            saveBioBtn.classList.remove('hidden');
-            editBioBtn.classList.add('hidden');
-            profileBio.classList.add('hidden');
-        });
+        window.editBio = () => {
+            document.getElementById('bio-input').value = window.userData.bio || '';
+            document.getElementById('bio-input').classList.remove('hidden');
+            document.getElementById('save-bio-btn').classList.remove('hidden');
+            event.target.classList.add('hidden');
+            document.getElementById('profile-bio').classList.add('hidden');
+        };
 
-        saveBioBtn.addEventListener('click', async () => {
-            const newBio = bioInput.value;
-            await updateDoc(doc(db, 'users', currentUser.uid), { bio: newBio });
-            userData.bio = newBio;
-            profileBio.textContent = newBio || 'Click edit to add bio';
-            bioInput.classList.add('hidden');
-            saveBioBtn.classList.add('hidden');
-            editBioBtn.classList.remove('hidden');
-            profileBio.classList.remove('hidden');
-        });
+        window.saveBio = async () => {
+            const newBio = document.getElementById('bio-input').value;
+            await updateDoc(doc(db, 'users', window.currentUser.uid), { bio: newBio });
+            window.userData.bio = newBio;
+            document.getElementById('profile-bio').textContent = newBio || 'Click edit to add bio';
+            document.getElementById('bio-input').classList.add('hidden');
+            document.getElementById('save-bio-btn').classList.add('hidden');
+            document.querySelector('[onclick="editBio()"]').classList.remove('hidden');
+            document.getElementById('profile-bio').classList.remove('hidden');
+        };
 
-        postImage.addEventListener('change', (e) => {
+        document.getElementById('post-image').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    selectedImage = e.target.result;
-                    previewImg.src = selectedImage;
-                    imagePreview.classList.remove('hidden');
+                    window.selectedImage = e.target.result;
+                    document.getElementById('preview-img').src = window.selectedImage;
+                    document.getElementById('image-preview').classList.remove('hidden');
                 };
                 reader.readAsDataURL(file);
             }
         });
 
-        removeImage.addEventListener('click', () => {
-            selectedImage = null;
-            postImage.value = '';
-            imagePreview.classList.add('hidden');
-        });
+        window.removeSelectedImage = () => {
+            window.selectedImage = null;
+            document.getElementById('post-image').value = '';
+            document.getElementById('image-preview').classList.add('hidden');
+        };
 
-        createPostBtn.addEventListener('click', async () => {
-            const content = postContent.value.trim();
-            if (!content &&!selectedImage) return alert('Write something or add image');
+        window.createPost = async () => {
+            const content = document.getElementById('post-content').value.trim();
+            if (!content &&!window.selectedImage) return alert('Write something or add image');
             try {
-                createPostBtn.textContent = 'Posting...';
-                createPostBtn.disabled = true;
                 await addDoc(collection(db, 'posts'), {
                     content: content,
-                    image: selectedImage || null,
-                    authorId: currentUser.uid,
-                    authorName: userData.name,
+                    image: window.selectedImage || null,
+                    authorId: window.currentUser.uid,
+                    authorName: window.userData.name,
                     likes: [],
                     comments: [],
                     createdAt: serverTimestamp()
                 });
-                await updateDoc(doc(db, 'users', currentUser.uid), {
+                await updateDoc(doc(db, 'users', window.currentUser.uid), {
                     posts: increment(1),
-                    level: Math.floor(((userData.posts || 0) + 1) / 5) + 1
+                    level: Math.floor(((window.userData.posts || 0) + 1) / 5) + 1
                 });
-                postContent.value = '';
-                selectedImage = null;
-                postImage.value = '';
-                imagePreview.classList.add('hidden');
+                document.getElementById('post-content').value = '';
+                window.selectedImage = null;
+                document.getElementById('post-image').value = '';
+                document.getElementById('image-preview').classList.add('hidden');
                 await loadUserData();
             } catch (error) {
                 alert('Post failed: ' + error.message);
-            } finally {
-                createPostBtn.textContent = 'Post';
-                createPostBtn.disabled = false;
             }
-        });
+        };
 
         function loadPosts() {
             const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
             onSnapshot(q, (snapshot) => {
+                const postsFeed = document.getElementById('posts-feed');
                 postsFeed.innerHTML = '';
                 if (snapshot.empty) {
                     postsFeed.innerHTML = '<div class="glass rounded-2xl p-6 text-center text-gray-400">No posts yet. Create one!</div>';
@@ -307,15 +255,13 @@
                     try {
                         const post = doc.data();
                         const postId = doc.id;
-                        const isLiked = post.likes?.includes(currentUser.uid);
-                        const isOwner = post.authorId === currentUser.uid;
+                        const isLiked = post.likes?.includes(window.currentUser.uid);
+                        const isOwner = post.authorId === window.currentUser.uid;
 
                         let timeString = 'Just now';
                         try {
                             if (post.createdAt && typeof post.createdAt.toDate === 'function') {
                                 timeString = post.createdAt.toDate().toLocaleString();
-                            } else if (post.createdAt) {
-                                timeString = new Date(post.createdAt).toLocaleString();
                             }
                         } catch(e) {}
 
@@ -327,37 +273,29 @@
                                     <h3 class="font-semibold">${post.authorName || 'Anonymous'}</h3>
                                     <p class="text-xs text-gray-400">${timeString}</p>
                                 </div>
-                                ${isOwner? `<button class="delete-post text-red-400 text-sm" data-id="${postId}">Delete</button>` : ''}
+                                ${isOwner? `<button onclick="deletePost('${postId}')" class="text-red-400 text-sm">Delete</button>` : ''}
                             </div>
                             <p class="mb-4">${post.content || ''}</p>
                             ${post.image? `<img src="${post.image}" class="w-full rounded-lg mb-4 max-h-96 object-cover">` : ''}
                             <div class="flex gap-4 text-sm text-gray-400 border-t border-white/10 pt-4">
-                                <button class="like-btn flex items-center gap-1 ${isLiked? 'liked' : ''}" data-id="${postId}">
+                                <button onclick="toggleLike('${postId}')" class="like-btn flex items-center gap-1 ${isLiked? 'liked' : ''}">
                                     <span>❤️</span> <span>${post.likes?.length || 0}</span>
                                 </button>
-                                <button class="comment-btn flex items-center gap-1" data-id="${postId}">
+                                <button onclick="toggleComments('${postId}')" class="comment-btn flex items-center gap-1">
                                     <span>💬</span> <span>${post.comments?.length || 0}</span>
                                 </button>
                             </div>
                             <div class="comments-section mt-4 hidden" id="comments-${postId}">
-                                <div class="comments-list space-y-2 mb-3"></div>
+                                <div class="comments-list space-y-2 mb-3">
+                                    ${(post.comments || []).map(c => `<div class="comment-box p-3 rounded-lg text-sm"><span class="font-semibold">${c.authorName}:</span> ${c.text}</div>`).join('')}
+                                </div>
                                 <div class="flex gap-2">
-                                    <input type="text" placeholder="Write a comment..." class="comment-input flex-1 p-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm">
-                                    <button class="send-comment bg-purple-500 text-white px-4 py-2 rounded-lg text-sm" data-id="${postId}">Send</button>
+                                    <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." class="flex-1 p-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm">
+                                    <button onclick="sendComment('${postId}')" class="bg-purple-500 text-white px-4 py-2 rounded-lg text-sm">Send</button>
                                 </div>
                             </div>
                         `;
                         postsFeed.appendChild(postEl);
-
-                        const commentsList = postEl.querySelector('.comments-list');
-                        if (post.comments?.length > 0) {
-                            post.comments.forEach(comment => {
-                                const commentEl = document.createElement('div');
-                                commentEl.className = 'comment-box p-3 rounded-lg text-sm';
-                                commentEl.innerHTML = `<span class="font-semibold">${comment.authorName}:</span> ${comment.text}`;
-                                commentsList.appendChild(commentEl);
-                            });
-                        }
                     } catch (error) {
                         console.error('Error rendering post:', error);
                     }
@@ -365,5 +303,38 @@
             });
         }
 
-        postsFeed.addEventListener('click', async (e) => {
-         
+        window.toggleLike = async (postId) => {
+            const postRef = doc(db, 'posts', postId);
+            const postDoc = await getDoc(postRef);
+            const likes = postDoc.data().likes || [];
+            if (likes.includes(window.currentUser.uid)) {
+                await updateDoc(postRef, { likes: arrayRemove(window.currentUser.uid) });
+            } else {
+                await updateDoc(postRef, { likes: arrayUnion(window.currentUser.uid) });
+            }
+        };
+
+        window.toggleComments = (postId) => {
+            document.getElementById(`comments-${postId}`).classList.toggle('hidden');
+        };
+
+        window.sendComment = async (postId) => {
+            const input = document.getElementById(`comment-input-${postId}`);
+            const text = input.value.trim();
+            if (!text) return;
+            await updateDoc(doc(db, 'posts', postId), {
+                comments: arrayUnion({ text: text, authorId: window.currentUser.uid, authorName: window.userData.name, createdAt: new Date() })
+            });
+            input.value = '';
+        };
+
+        window.deletePost = async (postId) => {
+            if (confirm('Delete this post?')) {
+                await deleteDoc(doc(db, 'posts', postId));
+                await updateDoc(doc(db, 'users', window.currentUser.uid), { posts: increment(-1) });
+                await loadUserData();
+            }
+        };
+    </script>
+</body>
+</html>
