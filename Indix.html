@@ -1,42 +1,172 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Slot Machine Demo</title>
-<style>
-body{
-    text-align:center;
-    font-family:Arial;
-    margin-top:50px;
-}
-.slot{
-    font-size:60px;
-    margin:20px;
-}
-button{
-    padding:10px 20px;
-    font-size:20px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wenggay Legend App 👑 Level 7</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        :root {
+            --bg: #0a0a0a;
+            --text: #fff;
+            --glass: rgba(255,255,255,0.05);
+            --border: rgba(255,255,255,0.1);
+        }
+        body.light {
+            --bg: #f5f5f5;
+            --text: #0a0a0a;
+            --glass: rgba(0,0,0,0.05);
+            --border: rgba(0,0,0,0.1);
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); transition: all 0.3s; }
+       .glass { background: var(--glass); backdrop-filter: blur(10px); border: 1px solid var(--border); }
+       .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor: pointer; }
+       .hidden { display: none!important; }
+       .like-btn.liked, .comment-like.liked { color: #ef4444; }
+       .comment-box { background: var(--glass); }
+        button { cursor: pointer; z-index: 10; position: relative; }
+        input[type="file"]::-webkit-file-upload-button {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .chat-box { height: 300px; overflow-y: auto; }
+    </style>
 </head>
-<body>
+<body class="min-h-screen">
+    <div id="auth-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="glass rounded-2xl p-8 w-full max-w-md">
+            <h1 class="text-3xl font-bold text-center mb-8">Welcome Wenggay 👑</h1>
+            <div id="login-form">
+                <input id="login-email" type="email" placeholder="Email" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20">
+                <input id="login-password" type="password" placeholder="Password" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20">
+                <button onclick="handleLogin()" class="w-full btn-primary text-white p-3 rounded-lg font-semibold mb-4">Login</button>
+                <p class="text-center text-gray-400">No account? <span onclick="showSignupForm()" class="text-purple-400 cursor-pointer underline">Sign up</span></p>
+            </div>
+            <div id="signup-form" class="hidden">
+                <input id="signup-name" type="text" placeholder="Full Name" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20">
+                <input id="signup-email" type="email" placeholder="Email" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20">
+                <input id="signup-password" type="password" placeholder="Password (6+ characters)" class="w-full mb-4 p-3 rounded-lg bg-white/10 border border-white/20">
+                <button onclick="handleSignup()" class="w-full btn-primary text-white p-3 rounded-lg font-semibold mb-4">Sign Up</button>
+                <p class="text-center text-gray-400">Have account? <span onclick="showLoginForm()" class="text-purple-400 cursor-pointer underline">Login</span></p>
+            </div>
+        </div>
+    </div>
 
-<h1>🎰 Slot Machine Demo</h1>
+    <div id="main-app" class="hidden">
+        <header class="glass sticky top-0 z-50 p-4">
+            <div class="max-w-6xl mx-auto flex justify-between items-center gap-4">
+                <h1 class="text-2xl font-bold">Wenggay Social 👑</h1>
+                <div class="flex-1 max-w-md">
+                    <input id="search-users" type="text" placeholder="Search users..." class="w-full p-2 rounded-lg bg-white/10 border border-white/20 text-sm">
+                    <div id="search-results" class="hidden absolute mt-2 w-full max-w-md glass rounded-lg p-2 z-50"></div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleTheme()" class="p-2 rounded-lg bg-white/10"><span id="theme-icon">🌙</span></button>
+                    <button onclick="openDM()" class="p-2 rounded-lg bg-white/10 relative">
+                        💬<span id="dm-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
+                    </button>
+                    <div class="text-right">
+                        <p id="user-name" class="font-semibold text-sm"></p>
+                        <p class="text-xs text-gray-400">Level <span id="user-level">1</span></p>
+                    </div>
+                    <button onclick="handleLogout()" class="bg-red-500/20 text-red-400 px-4 py-2 rounded-lg text-sm">Logout</button>
+                </div>
+            </div>
+        </header>
 
-<div class="slot" id="result">🍒 🍋 🍊</div>
+        <main class="max-w-6xl mx-auto p-4 grid md:grid-cols-4 gap-6">
+            <div class="md:col-span-1">
+                <div class="glass rounded-2xl p-6 mb-4">
+                    <h2 class="text-xl font-bold mb-4">Profile</h2>
+                    <div class="text-center mb-4">
+                        <div class="relative w-20 h-20 mx-auto mb-3">
+                            <img id="profile-pic" src="" class="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full object-cover hidden">
+                            <div id="profile-initial-div" class="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold">
+                                <span id="profile-initial">W</span>
+                            </div>
+                            <label for="profile-pic-input" class="absolute bottom-0 right-0 bg-purple-500 w-6 h-6 rounded-full flex items-center justify-center cursor-pointer text-xs">📷</label>
+                            <input type="file" id="profile-pic-input" accept="image/*" class="hidden">
+                        </div>
+                        <h3 id="profile-name" class="font-semibold text-lg"></h3>
+                        <p id="profile-bio" class="text-gray-400 text-sm mt-2">Click edit to add bio</p>
+                    </div>
+                    <textarea id="bio-input" placeholder="Write your bio..." class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-sm mb-3 hidden"></textarea>
+                    <button onclick="editBio()" class="w-full bg-white/10 p-2 rounded-lg text-sm mb-3">Edit Bio</button>
+                    <button onclick="saveBio()" id="save-bio-btn" class="w-full btn-primary text-white p-2 rounded-lg text-sm mb-3 hidden">Save Bio</button>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-400">Posts</span><span id="post-count">0</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">Followers</span><span id="followers-count">0</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">Following</span><span id="following-count">0</span></div>
+                    </div>
+                </div>
+            </div>
 
-<button onclick="spin()">SPIN</button>
+            <div class="md:col-span-2 space-y-6">
+                <div class="glass rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-4">Create Post</h2>
+                    <textarea id="post-content" placeholder="What's on your mind, Wenggay?" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 mb-3 h-24"></textarea>
+                    <input type="file" id="post-image" accept="image/*" class="w-full mb-3 text-sm">
+                    <div id="image-preview" class="hidden mb-3">
+                        <img id="preview-img" class="w-full rounded-lg max-h-64 object-cover">
+                        <button onclick="removeSelectedImage()" class="text-red-400 text-sm mt-2">Remove Image</button>
+                    </div>
+                    <button onclick="createPost()" class="w-full btn-primary text-white p-3 rounded-lg font-semibold">Post</button>
+                </div>
+                <div id="posts-feed" class="space-y-4"></div>
+            </div>
 
-<script>
-function spin() {
-    const symbols = ["🍒","🍋","🍊","⭐","💎","7️⃣"];
-    let a = symbols[Math.floor(Math.random()*symbols.length)];
-    let b = symbols[Math.floor(Math.random()*symbols.length)];
-    let c = symbols[Math.floor(Math.random()*symbols.length)];
+            <div class="md:col-span-1">
+                <div id="user-profile-view" class="glass rounded-2xl p-6 hidden">
+                    <h2 class="text-xl font-bold mb-4">User Profile</h2>
+                    <div id="view-profile-content"></div>
+                </div>
+                <div id="dm-modal" class="glass rounded-2xl p-6 hidden">
+                    <h2 class="text-xl font-bold mb-4">Messages</h2>
+                    <div id="dm-list" class="space-y-2 mb-4"></div>
+                    <div id="chat-window" class="hidden">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 id="chat-with" class="font-semibold"></h3>
+                            <button onclick="closeChat()" class="text-sm">✕</button>
+                        </div>
+                        <div id="chat-messages" class="chat-box glass rounded-lg p-3 mb-2"></div>
+                        <div class="flex gap-2">
+                            <input id="chat-input" type="text" placeholder="Type message..." class="flex-1 p-2 rounded-lg bg-white/10 border border-white/20 text-sm">
+                            <button onclick="sendDM()" class="bg-purple-500 text-white px-4 py-2 rounded-lg text-sm">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
 
-    document.getElementById("result").innerText =
-        a + " " + b + " " + c;
-}
-</script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, deleteDoc, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-</body>
-</html>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCeHwDLfwsAwXh6Wf0fwCw-nwSLSmPj_qI",
+            authDomain: "rowena-portfolio.firebaseapp.com",
+            projectId: "rowena-portfolio",
+            storageBucket: "rowena-portfolio.firebasestorage.app",
+            messagingSenderId: "352213537262",
+            appId: "1:352213537262:web:b58a90d30c1f5fa78f7eff"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.currentUser = null;
+        window.userData = null;
+        window.selectedImage = null;
+        window.currentChatUser = null;
+
+        // Theme
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.class
